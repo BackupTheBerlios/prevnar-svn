@@ -1,0 +1,1312 @@
+{
+    ПревНар- приложение за превеждане на INI-подобни файлове./PrevNar- an application for translating INI-like files.
+    Възпроизводствено право/Copyright (C) 2012  СМ630
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+}
+
+unit frmIniPrev;
+
+{$mode objfpc}{$H+}
+
+interface
+
+uses
+  {Classes,} SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, Menus, Grids,
+  StdCtrls, strutils, LCLProc, ExtCtrls, {LCLType,} frmPNSettings, frmPNSearch, frmPNGoto, pnCommons  ;
+
+
+type
+
+  { TfrmIniPrevMain }
+
+  TfrmIniPrevMain = class(TForm)
+    cmdOkay: TButton;
+    cmdCancel: TButton;
+    lblBOMTranslationWrite: TLabel;
+    lblCharsetTranslationWrite: TLabel;
+    lblArrow: TLabel;
+    lblStatusSecondary: TLabel;
+    lblBOMDefault: TLabel;
+    lblBOMTranslation: TLabel;
+    lblCharsetTranslation: TLabel;
+    lblNewLineStringDefault: TLabel;
+    lblCharsetDefault: TLabel;
+    lblStatus: TLabel;
+    lblNewLineStringTranslation: TLabel;
+    mnuEditSeparator01: TMenuItem;
+    mnuEditCopyToTrans: TMenuItem;
+    mnuAddNewStrings: TMenuItem;
+    mnuEditFindPrev: TMenuItem;
+    mnuEditFindNext: TMenuItem;
+    mnuFileExit: TMenuItem;
+    mnuFileSeparator01: TMenuItem;
+    mnuMiscSettings: TMenuItem;
+    mnuMisc: TMenuItem;
+    mnuFileSaveAs: TMenuItem;
+    mnuFileSaveTranslation: TMenuItem;
+    mnuEditGoToLine: TMenuItem;
+    mnuEditFind: TMenuItem;
+    odMultipleFiles: TOpenDialog;
+    sdSingleFile: TSaveDialog;
+    tmrStatus: TTimer;
+    txtMDefault: TMemo;
+    mnuEditPreviousUntranslated: TMenuItem;
+    mnuEditNextUntranslated: TMenuItem;
+    mmMain: TMainMenu;
+    mnuEdit: TMenuItem;
+    mnuFileOpenMain: TMenuItem;
+    mnuFileTranslateFile: TMenuItem;
+    mnuFile: TMenuItem;
+    odSingleFile: TOpenDialog;
+    sgStringList: TStringGrid;
+    txtMTranslation: TMemo;
+    procedure cmdCancelClick(Sender: TObject);
+    procedure cmdOkayClick(Sender: TObject);
+    procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
+    procedure FormCreate(Sender: TObject);
+    procedure FormResize(Sender: TObject);
+    procedure lblBOMTranslationWriteClick(Sender: TObject);
+    procedure lblCharsetDefaultClick(Sender: TObject);
+    procedure lblCharsetTranslationClick(Sender: TObject);
+    procedure lblCharsetTranslationWriteClick(Sender: TObject);
+    procedure mnuEditCopyToTransClick(Sender: TObject);
+    procedure mnuAddNewStringsClick(Sender: TObject);
+    procedure mnuEditFindNextClick(Sender: TObject);
+    procedure mnuEditFindPrevClick(Sender: TObject);
+    procedure mnuEditGoToLineClick(Sender: TObject);
+    procedure mnuFileExitClick(Sender: TObject);
+    procedure mnuEditFindClick(Sender: TObject);
+    procedure mnuEditNextUntranslatedClick(Sender: TObject);
+    procedure mnuEditPreviousUntranslatedClick(Sender: TObject);
+    procedure mnuFileOpenMainClick(Sender: TObject);
+    procedure mnuFileSaveAsClick(Sender: TObject);
+    procedure mnuFileSaveTranslationClick(Sender: TObject);
+    procedure mnuFileTranslateFileClick(Sender: TObject);
+    procedure mnuMiscSettingsClick(Sender: TObject);
+    procedure sgStringListDblClick(Sender: TObject);
+    procedure sgStringListKeyPress(Sender: TObject; var Key: char);
+    procedure sgStringListPrepareCanvas(sender: TObject; aCol, aRow: Integer;
+      aState: TGridDrawState);
+    procedure tmrStatusTimer(Sender: TObject);
+    procedure txtMTranslationChange(Sender: TObject);
+    procedure txtMTranslationKeyPress(Sender: TObject; var Key: char);
+  private
+    { private declarations }
+  public
+    { public declarations }
+  end;
+
+
+const
+  DummyConst=True ; //Lazarus does not want to compile, if no constant is declared.
+
+var
+  SgSlFG: array of TColor;
+  SgSlBG: array of TColor;
+
+  frmIniPrevMain: TfrmIniPrevMain;
+  //The latter variables will be adjustable through the settings, when implemented
+  colRow:integer = 0;
+  colSection:Integer= 1;
+  colKey:integer=2;
+  colDefault:integer=3;
+  colTranslation:integer=4;
+  //End of adjustable vars
+
+  Unsaved:Boolean = False;
+  SearchString:String;
+  SearchCaseSensitive: Boolean = False;
+  CharsetDefault: integer;
+  CharsetTranslation: integer;
+  CharsetTranslationWrite: Integer;
+  FilenameDefault: string;
+  FilenameTranslation: string;
+  TranslationStrings: array of array of String;
+  NewLineTranslation: String ;
+  BOMTranslation: Boolean ;
+  TranslationNewRows: array of string;
+  SearchIgnoreChars: array [0..2] of String;
+  SaveInProgress: boolean=False;
+
+  {Column indices start here}
+  stlRow: int64;
+  stlSection: int64;
+  stlKey: int64;
+  stlDefault: int64;
+  stlTranslation: int64;
+  {Column indices end here}
+
+implementation
+
+{$R *.lfm}
+
+{ TfrmIniPrevMain }
+
+//Detects the new line string (CrLf, Cr or Lf)
+function NewLineString(Str:string): string;
+var
+  RetVal: string;
+begin
+     if PosEx (CrLf, Str) <>0 then
+     begin
+       RetVal:=crlf;
+     end
+     else if PosEx (Cr , Str) <>0 then
+     begin
+       RetVal:=Cr;
+       end
+       else if PosEx (Lf , Str) <> 0 then
+       begin
+         RetVal:=Lf;
+         end;
+  Result:=RetVal ;
+end;
+
+procedure DebugLine(AString: string);  //Appends a line to the debug log
+var
+ FileVar: TextFile;
+begin
+ if debugmode = true then
+ begin //if
+  AssignFile(FileVar, AppendPathDelim(ProgramDirectory)+ debuglog);
+  {$I+} //use exceptions
+  try
+    if FileExists (AppendPathDelim(ProgramDirectory) + debuglog) then
+       Append (FileVar)
+    else
+       Rewrite(FileVar);
+    Writeln(FileVar,AString);
+    CloseFile(FileVar);
+  except
+    on E: EInOutError do
+    begin
+    // Writeln('File handling error occurred. Details: '+E.ClassName+'/'+E.Message);
+    end;
+  end; //try
+ end; //if debugmode
+end;
+
+procedure DebugArray2D(AStringArray2D: StringArray2D);
+var
+ i: integer;
+begin
+  if debugmode = true then
+  begin
+  DebugLine (crlf+'Dumping array with size ' + its(Length(AStringArray2D)));
+  for i:=0 to Length(AStringArray2D) -1 do
+  begin
+      DebugLine ('Line:' + IntToStr ( i) + tab + AStringArray2D[i,0] + TAB +AStringArray2D[i,1]);
+    end;
+  end;
+end;
+
+
+//I could not find a case insensitive search function in a reasonable time, so I made this one
+function InStr (SearchString: string; SoughtString:string; start:integer = 1;CaseSensitive:Boolean = False ): integer;
+var
+  RetVal:integer= 0;
+begin
+     if CaseSensitive= True then
+          RetVal:= PosEx (SoughtString, SearchString , start)
+     else
+         RetVal:= PosEx (UTF8LowerCase  (SoughtString),UTF8LowerCase  (SearchString), start );
+     Result:= RetVal ;
+end;
+
+
+//Returns the text between Opener and Closer. Example- unclose ([section], '[',']') returns „section“.
+function Unclose (AString:String; Opener: String; Closer: String) : String;
+var
+    RetVal: String;
+begin
+    RetVal:= Mid (AString,PosEx (Opener,AString)+1, PosEx(Closer,AString,PosEx (Opener,AString)+Length(opener))-PosEx (Opener,AString)-1);
+    Result:=RetVal;
+end;
+
+//Calculates the % value of the portion, relative to the whole part
+function PerCent (WholePart: Double; Portion:Double): Double;
+begin
+     Result:= (Portion/WholePart)*100;
+end;
+
+
+//Converts the character sequence for a new string to a human readable string
+function NewLineToText(str: string):string;
+var
+  RetVal: string;
+begin
+  if str= CrLf then
+       RetVal:='CrLf'
+     else if str= Cr then
+     begin
+       RetVal:='Cr'
+       end
+       else if str=Lf then
+       begin
+         RetVal:='Lf';
+         end;
+  Result:=RetVal ;
+end;
+
+
+//Localizes a sting in the format "Localizable %1 strings %2 must %3 use %4 numbers %5 after the percent sign, instead of same letters, so the translator could change the word order"
+function LocalizeRowMultiple(aString:string; Key1:string='';Key2:string='';Key3:string='';Key4:string='';Key5:string='';Key6:string=''):string;
+var
+  RetVal:string;
+begin
+  RetVal:=aString;
+  if Key1<>'' then RetVal:=UTF8StringReplace (RetVal,'%1',Key1,[]);
+  if Key2<>'' then RetVal:=UTF8StringReplace (RetVal,'%2',Key2,[]);
+  if Key3<>'' then RetVal:=UTF8StringReplace (RetVal,'%3',Key3,[]);
+  if Key4<>'' then RetVal:=UTF8StringReplace (RetVal,'%4',Key4,[]);
+  if Key5<>'' then RetVal:=UTF8StringReplace (RetVal,'%5',Key5,[]);
+  if Key6<>'' then RetVal:=UTF8StringReplace (RetVal,'%6',Key6,[]);
+  result:=RetVal ;
+end;
+
+
+function RealToString (aReal:real; Width:Integer=0; Decimals:Integer=3):string;
+var
+  RetVal:string;
+begin
+     Str (aReal:Width:Decimals,RetVal);
+     Result:=RetVal;
+end;
+
+
+//This could be quite tricky- in some languages different suffixes are used, depending the last digit of the number.
+function LocalizeRowCountable (String0Items:string;String1Item:string; StringMultipleItems:string;KeyNumeric:QWord; Decimals:Integer=0 ):string;
+var
+  RetVal:string;
+begin
+if StringMultipleItems='' then StringMultipleItems:=String1Item;
+if String0Items='' then String0Items:=StringMultipleItems; //In most European languages 0 goes with plural
+case KeyNumeric of
+  0: RetVal:=UTF8StringReplace (String0Items,'%1',RealToString(KeyNumeric,0,Decimals ),[]);
+  1: RetVal:=UTF8StringReplace (String1Item,'%1',RealToString(KeyNumeric,0,Decimals ),[]);
+  else RetVal:=UTF8StringReplace (StringMultipleItems,'%1',RealToString(KeyNumeric,0,Decimals),[]) //>1 or floating point
+  end; //case
+  Result:=RetVal;
+end;
+
+
+procedure LocalizeSettings;
+begin
+  with frmSettings do
+  begin //with
+    Caption:= ezSettings;
+    lblRowSplitter.Caption:= ezRowSplitter;
+    lblSectionOpener.Caption:= ezSectionOpener ;
+    lblSectionCloser.Caption:= ezSectionCloser ;
+    chkFillInEmpty.Caption:= ezFillInEmptyLines;
+    cmdOkay.Caption:= ezOkay ;
+    cmdCancel.Caption:=ezCancel ;
+  end;//with
+end;
+
+
+procedure Localize;
+begin
+  {English is default}
+  ezComma:=',';
+  ezBracketOpen:='(' ;
+  ezBracketClose:=')' ;
+  ezSemicolon:=';';
+  ezSpace:=' ';
+  ezOkay:='Okay';
+  ezCancel:='Cancel';
+  ezRow:= 'Row';
+  ezSection:= 'Section';
+  ezKey:= 'Key';
+  ezDefault:= 'Default';
+  ezTranslation:= 'Translation';
+  ezLanguageFiles:= 'Language files';
+  ezTextFiles:= 'Text Files';
+  ezAllFiles:= 'All files';
+  ezTotalStrings:='Total strings: ';
+  ezTotalStringsEtc:= 'Total strings: %1(%2);Translated: %3(%4%); Untranslated: %5(%6%)';
+  ezTranslatedStrings:='Translated: ';
+  ezUntranslatedStrings:='Untranslated: ';
+  ezUntranslatableStrings:='Untranslatable: ';
+  ezPerCent:='%';
+  ezBOM:='BOM';
+  ezNoBOM:='No BOM';
+  ezCharsetName[0]:='UTF8';
+  ezCharsetName[1]:='ANSI';
+// ezCharsetName[2]:='UTF16(BE)'; //Charset still not supported
+// ezCharsetName[3]:='UTF16(LE)'; //Charset still not supported
+  ezSelectMainfile:='Select main file';
+  ezSelectTranslationFile:= 'SelectTranslationFile';
+  ezSettings:= 'Settings';
+  ezRowSplitter:= 'Row splitter';
+  ezFillInEmptyLines:= 'Fill in empty lines';
+  ezSectionOpener:= 'Section opener' ;
+  ezSectionCloser:= 'Section closer' ;
+  ezTo:= 'to';
+  ezFileToFile:= '- %1 to %2';
+  ezFileNotSaved:='File not saved';
+  ezDoYouWantToSaveTheFileBeforeExit:='Do you want to save the file before exit?';
+  ezIniPrev:='IniPrev';
+  ezFillInTheTextBoxBeforeCheckingThisOption:='Fill in the text box before checking this option';
+  ezNewLines:='New lines';
+  ezAutoFilledLines:='Autofilled new lines';
+  ezSearchComplete:='Search complete';
+  ezSettingsHeaderLocalized:=''; //Should be empty for English.
+  ezNoStringsFoundMakeSureThatYouHaveSetTheProperRowSplitterInTheSettinsAndThatYouHaveOpenedAProperFile:= 'No strings found. Make sure that you have set the proper' +CrLf+ 'rowsplitter in the settins and that you have opened a proper file';
+  ezWarning:='Warning!';
+  ezDoYouWantToOpenTheTranslationFileWithANewEncoding:='Do you want to open the translation file with a new encoding?';
+  ezTheChangesInYourTranslationAreNotSavedIfYouPressYesTheyWillBeLost:= 'The changes in your translation are not saved.'+CrLf+ 'If you press “Yes” they will be lost.';
+  ezAutotranslate:='Autotranslate';
+  ezDoYouWantToAutotranslate1to2:='Do you want to autotranslate %1 to %2 (empty line on key %3)?';
+  frmIniPrevMain.Caption:=ezIniPrev;
+end;
+
+procedure Reposition; //Position the elements in the main form, after being resized by the user
+var
+   TopDefault: integer;
+   TopTranslation: integer;
+begin
+with frmIniPrevMain do
+begin //with
+  sgStringList.Left:= 10;
+  sgStringList.Top:= 10;
+  sgStringList.Height:= frmIniPrevMain.Height - 80;
+  sgStringList.Width:= frmIniPrevMain.Width - 20;
+  sgStringList.Columns[colRow].Width:= 30;
+  sgStringList.Columns[colSection].Width:= 50;
+  sgStringList.Columns[colKey].Width:= 30;
+  sgStringList.Columns[colDefault].Width:=  trunc((frmIniPrevMain.sgStringList.Width - 90) / 2) - 20;
+  sgStringList.Columns[colTranslation].Width:=  frmIniPrevMain.sgStringList.Columns[colDefault].Width;
+  TopDefault:= frmIniPrevMain.Height - lblNewLineStringDefault.Height -40;
+  TopTranslation:= TopDefault+20;
+  lblNewLineStringDefault.Top:= TopDefault;
+  lblNewLineStringTranslation.Top:= TopTranslation;
+  lblStatus.top:= TopDefault;
+  lblStatusSecondary.top:=TopTranslation;
+  lblCharsetDefault.Top:=TopDefault ;
+  lblCharsetTranslation.Top:=TopTranslation ;
+  lblCharsetTranslationWrite.Top:=TopTranslation ;
+  lblBOMDefault.top:=TopDefault ;
+  lblBOMTranslation.top:=TopTranslation ;
+  lblBOMTranslationWrite.top:=TopTranslation ;
+  lblArrow.Top:=TopTranslation ;
+  txtMDefault.Top:= 85;
+  txtMDefault.Height:= trunc(frmIniPrevMain.Height/2- 125 );
+  txtMDefault.left:= txtMTranslation.Left;
+  txtMDefault.Width:= frmIniPrevMain.Width - 100;
+  txtMTranslation.Top:= txtMDefault.Top + txtMDefault.Height  + 10;
+  txtMTranslation.Height:= txtMDefault.Height ;
+  txtMTranslation.Left:= 50;
+  txtMTranslation.Width:= txtMDefault.Width ;
+  cmdOkay.top:= txtMTranslation.top+ txtMTranslation.Height + 10    ;
+  cmdOkay.left:= trunc(frmIniPrevMain.Width/2 - frmIniPrevMain.cmdOkay.Width);
+  cmdCancel.top:= cmdOkay.top ;
+  cmdCancel.left:= frmIniPrevMain.cmdOkay.left+frmIniPrevMain.cmdOkay.Width +1;
+end; //with
+end;
+
+procedure OpenMainFile (FileName: string=''; ForcedCharset:integer= ord(EncodingUndefined); CleanTable:Boolean=True);
+const
+  TF= true;
+var
+  DefaultFileContents: string;
+  MainStrings: StringArray1D;
+  MainLine: string;
+  NewLine: string;
+  i: integer;
+  RowNumber: integer;
+  SplitterLocation:integer;
+  SectionName: string= '';
+begin
+  with frmIniPrevMain do
+  begin //with
+  if FileName ='' then
+    begin
+    odSingleFile.Title:=ezSelectMainFile;
+    odSingleFile.Filter:= (ezLanguageFiles +  '(*.lng)|*.lng|' + ezTextFiles +'(*.txt)|*.txt|'  + ezAllFiles +'(*.*)|*.*|');
+      if odSingleFile.Execute = false then exit;
+      FilenameDefault:= odSingleFile.FileName;
+      FileName:=FilenameDefault  ;
+    end;
+    DefaultFileContents:= FileGet(FileName, 0,0, ForcedCharset );
+    if Charset = 0 then lblBOMDefault.Caption:= ezNoBOM else lblBOMDefault.Caption:= ezBOM;
+    lblCharsetDefault.Caption:= ezCharsetName[Charset];
+    CharsetDefault:=Charset;
+    NewLine:= NewLineString(DefaultFileContents);
+    lblNewLineStringDefault.Caption:= NewLineToText(NewLine ) ;
+    MainStrings:= Split (DefaultFileContents, NewLine );
+    if CleanTable = True then
+    begin //if
+    //Next 4 lines remove the lines in the table, which is necessary when a new file is open.
+    //.clean causes problems
+      for i:= 1 to sgStringList.RowCount-1 do
+      begin //for i
+        sgStringList.DeleteRow (1);
+      end; //for i
+      {//I could not find what the hex is TGridZoneSet
+      sgStringList.Clean (0,1,sgStringList.RowCount-1, sgStringList.ColCount -1, gzNormal  ) ;
+      //Error: Incompatible type for arg no. 5: Got "TGridZone", expected "TGridZoneSet"
+      }
+    end; //if
+     RowNumber:=1;
+    for i:= 0 to (Length (MainStrings )-1) do
+      begin //for i
+      MainLine:= MainStrings[i];
+      if CompareText(LeftStr (MainLine,Length(SectionCloser)), SectionOpener)= 0 then
+       begin
+         SectionName:= Unclose(MainLine, SectionOpener, SectionCloser);
+       end;
+      SplitterLocation:= PosEx(RowSplitter,MainLine) ;
+      if (SplitterLocation) <> 0 then
+      begin //if
+        {if CleanTable = true then } sgStringList.InsertColRow (false, RowNumber);
+        sgStringList.Cells [colSection, RowNumber]:= SectionName;
+        sgStringList.Cells [colRow ,RowNumber]:= IntToStr (RowNumber);
+        sgStringList.Cells [colKey,RowNumber]:= LeftStr  (MainLine,SplitterLocation-1);
+        sgStringList.Cells [colDefault,RowNumber ]:= Mid (MainLine,SplitterLocation+1, Length(MainLine)-SplitterLocation );
+        RowNumber:=RowNumber+1;
+       end; //if
+    end; //for i
+    if sgStringList.RowCount= 1 then
+     begin
+          ShowMessage (ezNoStringsFoundMakeSureThatYouHaveSetTheProperRowSplitterInTheSettinsAndThatYouHaveOpenedAProperFile);
+          exit;
+     end;
+  SetLength(SgSlBG,sgStringList.RowCount);
+  for i:=0 to sgStringList.RowCount-1 do SgSlBG[i]:= clWhite ;
+
+  lblStatus.Caption:= ezTotalStrings + IntToStr ( sgStringList.RowCount -1)   ;
+  mnuFileTranslateFile.Enabled:=TF;
+  mnuFileTranslateFile.Enabled:=TF ;
+  lblNewLineStringDefault.Visible:=TF;
+  lblBOMDefault.Visible:=TF;
+  lblCharsetDefault.Visible:=TF;
+  lblCharsetDefault.Enabled:=TF;
+  lblStatus.Visible:=TF;
+  mnuEditFind.Enabled:=TF ;
+  end; //with
+end;
+
+procedure TfrmIniPrevMain.mnuFileOpenMainClick(Sender: TObject);
+begin
+     OpenMainFile('',ord(EncodingUndefined),True);
+end;
+
+procedure InsertX (var AArray: StringArray2D; const Index: Cardinal; const Value: StringArray1D);
+var
+  ALength: integer;
+  TailElements: integer;
+begin
+  ALength:=Length(AArray);
+  Assert (Index<= ALength);
+  SetLength(AArray,ALength +1);
+  Finalize (AArray[ALength]);
+  TailElements:= ALength -Index ;
+  If TailElements >= 0 then
+  begin //if
+    Move (AArray[index], AArray[index+1], SizeOf (StringArray1D)*TailElements);
+    Initialize (AArray[Index ]);
+    AArray[Index]:= Value;
+    end
+    else //If the elemet is appended to the end of the array
+     if (TailElements = -1) then
+        begin
+          AArray [Index-1]:= Value ;
+        end;
+end;
+
+//Returns the index of the TranslationStrings, corresponding to the given row (RowNumber)
+function GetRowIndex (RowNumber:integer): Integer;
+var
+  i:integer;
+  RetVal: Integer =0;
+begin
+  for i:= 0 to Length(TranslationStrings)-1 do
+  begin//for i
+    if  CompareText (TranslationStrings[i,1], IntToStr (RowNumber))=0  then
+    begin //if
+      Retval:= i;
+      break;
+    end;//if
+  end; //for i
+ if RetVal= 0 then RetVal:= Length(TranslationStrings) ;
+ Result:= RetVal;
+ DebugLine ('GetRowIndex:'+ 'i=' + IntToStr (i) + tab + 'RowNumber=' + IntToStr (RowNumber) );
+end;
+
+procedure SaveTranslation (FileName: String ='');
+var
+  i:integer;
+  FullStrings: UTF8String='';
+begin
+if SaveInProgress = false then
+begin //if
+with frmIniPrevMain do
+begin //with
+  SaveInProgress:=True;
+  if (BOMTranslation=True) and (CharsetTranslationWrite<> ord(EncodingANSI)) then
+     case CharsetTranslationWrite of
+     ord(EncodingUTF8) :  FullStrings:= BOMUTF8 ;
+     ord(EncodingUTF16_BE) :  FullStrings:= BOMUTF16BE ;
+     ord(EncodingUTF16_LE) :  FullStrings:= BOMUTF16LE
+     end;  //case
+  for i:= 0 to Length(TranslationStrings) -1 do
+  begin //for
+      if CompareText(RightStr(TranslationStrings [i,0],1), RowSplitter) = 0 then //Checks if the row is emty
+      begin //if
+        if frmSettings.chkFillInEmpty.Checked  = True
+        then FullStrings:= FullStrings+ sgStringList.cells[colKey,StrToInt (TranslationStrings[i,1])]+ RowSplitter+  sgStringList.cells[colDefault,strtoint(TranslationStrings[i,1])] +NewLineTranslation;
+      end
+    else
+       FullStrings:= FullStrings + TranslationStrings [i,0] + NewLineTranslation
+  end; //for
+  if FileName= '' then
+  begin
+    sdSingleFile.Title:= ezSaveTranslatedFileAs;
+    sdSingleFile.Filter:= (ezLanguageFiles +  '(*.lng)|*.lng|' + ezTextFiles +'(*.txt)|*.txt|'  + ezAllFiles +'(*.*)|*.*|');
+    if sdSingleFile.Execute = true then FilenameTranslation:= sdSingleFile.FileName ;
+  end;
+  if CharsetTranslationWrite=ord(EncodingANSI) then FullStrings:=Utf8ToAnsi(FullStrings); //TODO: Some lines remain unconverted
+  //next line does not work
+  //if (CharsetTranslationWrite=ord(EncodingUTF16_BE)) or (CharsetTranslationWrite=ord(EncodingUTF16_LE)) then FullStrings:=UTF8ToUTF16(FullStrings);
+  FilePut (FilenameTranslation,FullStrings,0);
+  frmIniPrevMain.Caption:= LeftStr (frmIniPrevMain.Caption, Length(frmIniPrevMain.Caption) -1) ;
+  mnuFileSaveTranslation.Enabled:= false;
+  Unsaved:= false;
+  SaveInProgress:=False;
+end; //with
+end; //if
+end;
+
+procedure TfrmIniPrevMain.mnuFileSaveTranslationClick(Sender: TObject);
+begin
+  SaveTranslation(FilenameTranslation);
+end;
+
+
+procedure TfrmIniPrevMain.mnuFileSaveAsClick(Sender: TObject);
+begin
+  SaveTranslation();
+end;
+
+procedure SetCellBackground({StringGrid: TStringGrid ; Column: Integer;} Row: integer; BackgroundColour: TColor  );
+begin
+    SgSlBG[Row]:= BackgroundColour;
+end;
+
+//Checks if a line is translatable, i.e. not starting with a string linsted in frmSettings.cboIgnoreBeginnings
+function LineTranslatable(LineNumber:integer): Boolean ;
+var
+  RetVal: Boolean= True;
+  i: integer;
+begin
+     for i:= 0 to Length(IgnoreLines)-1  do
+     begin //for i
+           if CompareText(LeftStr (frmIniPrevMain.sgStringList.Cells [colDefault,LineNumber],Length(IgnoreLines [i])),IgnoreLines [i]) = 0
+           then RetVal:=False  ;
+     end; //for i
+     Result:=RetVal;
+end;
+
+procedure PrintStatus(); //Prints the status (Total, translated, untranslated...)
+var
+  TranslatedCount: integer=0;
+  UntranslatedCount: integer=0;
+  UntranslatableCount:integer=0;
+  i: integer;
+begin
+with frmIniPrevMain do
+begin //with
+     for i:= 1 to sgStringList.RowCount -1 do
+     begin //for i
+       if LineTranslatable(i)= false then inc(UntranslatableCount) else
+         if (CompareText (sgStringList.Cells[colDefault,i], sgStringList.Cells[colTranslation,i])= 0 )
+         or (Length(sgStringList.Cells[colTranslation,i])=0)
+         then inc(UntranslatedCount);
+     end; //next i
+     TranslatedCount:= sgStringList.RowCount -1 - UntranslatableCount - UntranslatedCount;
+     lblStatus.Caption:= LocalizeRowMultiple (ezTotalStringsEtc,its(sgStringList.RowCount -1 - UntranslatableCount),its(sgStringList.RowCount -1),its(TranslatedCount),its (trunc(PerCent(sgStringList.RowCount-1-UntranslatableCount,TranslatedCount))),its((sgStringList.RowCount-1-UntranslatableCount) - TranslatedCount),its (100- trunc(PerCent(sgStringList.RowCount-1-UntranslatableCount,TranslatedCount))));
+end; //with
+end;
+
+
+function RemoveIgnoreChars(aStr: string; IgnoreChars:array of String): String;
+var
+  i: Integer;
+  RetVal: string;
+begin
+     RetVal:=aStr;
+     for i:=0 to Length (IgnoreChars) do
+     begin //for
+      RetVal:=UTF8StringReplace (RetVal,IgnoreChars[i],'',[]);
+     end; //for
+     Result:= RetVal;
+end;
+
+//Searches if the same string is already translated on another entry.
+function SearchTranslatedString(SoughtString: string): string;
+var
+  AutotranslateIgnoreChars:array [0..4] of String;
+  i: integer;
+  RetVal:string='';
+begin
+//Splitting a string would be a better solution- ignore chars shall be customizable.
+AutotranslateIgnoreChars[0]:='&';
+AutotranslateIgnoreChars[1]:='_';
+AutotranslateIgnoreChars[2]:='.';
+AutotranslateIgnoreChars[3]:='?';
+AutotranslateIgnoreChars[4]:='!';
+  with frmIniPrevMain do
+  begin //with
+    for i:= 1 to sgStringList.RowCount -1 do
+    begin//for
+      //if (CompareText(RemoveIgnoreChars(sgStringList.Cells[colDefault,i],AutotranslateIgnoreChars),RemoveIgnoreChars(SoughtString,AutotranslateIgnoreChars))=0)
+     if (CompareText(sgStringList.Cells[colDefault,i],SoughtString)=0)
+          and (Length (sgStringList.Cells[colTranslation,i])>0)then
+       begin //if
+         RetVal:=sgStringList.Cells[colTranslation,i];
+         Break;
+       end; //if
+    end; //for
+  end; //with
+  Result:= RetVal;
+end;
+
+procedure OpenTranslationFile (FileName: string=''; ForcedCharset:integer= ord(EncodingUndefined));
+const
+  TF= true;
+var
+  TranslationFileContents: string;
+  i,j: integer;
+  CurrentNewLine:integer=0;
+  NextNewLine:integer=0;
+  TranslatedCount: Integer=0;
+  NewLine:string='';
+  Key:String='';
+  InsertLine: StringArray1D;
+  NewLineContents: String = '';
+  NewLinesFound:integer=0;
+  AutoFilledLines:integer=0;
+begin
+with frmIniPrevMain do
+begin //with
+  if FileName='' then
+  begin //if
+    odSingleFile.Title:=ezSelectTranslationFile;
+    odSingleFile.Filter:= (ezLanguageFiles +  '(*.lng)|*.lng|' + ezTextFiles +'(*.txt)|*.txt|'  + ezAllFiles +'(*.*)|*.*|');
+    if odSingleFile.Execute = False then exit;
+    FilenameTranslation:= odSingleFile.FileName;
+    FileName:= FilenameTranslation;
+  end;//if
+  TranslationFileContents:= FileGet(FileName, 0,0, ForcedCharset );
+  FileClose(FileOpen(FileName,fmShareDenyNone ));
+  if ForcedCharset=ord(EncodingUndefined) then
+     if (Charset = ord(EncodingANSI)) then
+       begin //if
+           lblBOMTranslation.Caption:= ezNoBOM;
+           lblBOMTranslationWrite.Caption:= ezNoBOM;
+           BOMTranslation:= False;
+       end //if
+       else
+       begin  //else
+         lblBOMTranslation.Caption:= ezBOM;
+         BOMTranslation:= True;
+         {if Charset= ord(EncodingUTF8) then
+            TranslationFileContents:= mid(TranslationFileContents, 4)
+         else
+            if (Charset= ord(EncodingUTF16_BE)) or (Charset= ord(EncodingUTF16_LE)) then
+              TranslationFileContents:= mid(TranslationFileContents, 3);}
+       end; //else
+  lblCharsetTranslation.Caption:= ezCharsetName[Charset];
+  CharsetTranslation:=Charset;
+  CharsetTranslationWrite:=Charset;
+  NewLine:= NewLineString(TranslationFileContents);
+  NewLineTranslation:=  NewLine;
+  lblNewLineStringTranslation.Caption:= NewLineToText(NewLine ) ;
+  SetLength(TranslationStrings,Occurs(TranslationFileContents,NewLine),2);
+  CurrentNewLine:=1;
+  for i:=1 to sgStringList.RowCount - 1 do sgStringList.Cells[colTranslation,i]:=''; //Cleans translations column
+  DebugLine ('Translation File Contents' +crlf+ TranslationFileContents);
+  for i:=0 to Occurs(TranslationFileContents,NewLine)-1 do
+  begin //for i
+             NextNewLine:= PosEx (NewLine, TranslationFileContents,CurrentNewLine)+length(NewLine);
+             TranslationStrings[i,0]:= MidStr (TranslationFileContents,CurrentNewLine,NextNewLine- CurrentNewLine-length(NewLine));
+             CurrentNewLine:= NextNewLine;
+             if PosEx (RowSplitter,TranslationStrings[i,0])<> 0 then
+               begin //if
+                 Key:=LeftStr (TranslationStrings[i,0],PosEx (RowSplitter,TranslationStrings[i,0])-1) ;
+                 for j:=0 to sgStringList.RowCount -1 do
+                   begin //for j
+                     if  CompareText (key,sgStringList.Cells[colKey,j])=0 then
+                     begin //if
+                       sgStringList.Cells[colTranslation,j]:= Mid (TranslationStrings[i,0],Length(key+RowSplitter)+1,100);
+                       TranslationStrings [i,1]:= sgStringList.Cells[colRow,j]; //The KEY value is not usable, since there might be equal keys in different sections
+                       break;
+                     end  //if
+                   end //for j    }
+               end //if
+    end; //for i
+    TranslatedCount:=0;
+    //Here is the concept- there are two ways to add strings, that are missing in the translation file
+    //1. Append them to the end of the file
+    //2. Insert them in the same positions, as in the original file.
+    //Option 1 is easier, but it is noo good, so option 2 is done.
+  //for i:= sgStringList.RowCount-1 downto 1 do //row 0 are the captions
+  for i:= 1 to sgStringList.RowCount-1 do //row 0 contains the captions
+  begin //for i
+      {case sgStringList.Cells [colTranslation,i] of
+         '': SetCellBackground (sgStringList,colTranslation,i,clYellow);
+         sgStringList.Cells [colDefault,i]: SetCellBackground (sgStringList,colTranslation,i,clCream)
+         else inc (TranslatedCount);
+    end;}
+        //I tried to use CASE with no succes, it occured that the version of Lazarus that I had some bugs.
+        if sgStringList.Cells [colTranslation,i]= '' then
+          begin //if Line is missing in the translation file
+            SetCellBackground(i,clYellow);
+            SetLength(InsertLine,2);
+            NewLineContents:= SearchTranslatedString (sgStringList.Cells [colDefault,i]);
+            if (Length(NewLineContents)>0) and (ConfirmAutotranslate= 2) then
+                  if(QuestionDlg(ezAutotranslate,  LocalizeRowMultiple(ezDoYouWantToAutotranslate1to2,sgStringList.Cells [colDefault,i],NewLineContents,sgStringList.Cells[colKey,i]),
+                  mtCustom, [mrYes,ezYes,mrNo,ezNo],'')) = mrNo then NewLineContents:='';
+            InsertLine [0]:=sgStringList.Cells [colKey,i]+ RowSplitter+  NewLineContents ;
+            sgStringList.Cells [colTranslation,i]:=  NewLineContents;
+            InsertLine [1]:=IntToStr (i);
+            InsertX (TranslationStrings,GetRowIndex (i-1)+1, InsertLine) ;
+            inc(NewLinesFound);
+            if length(NewLineContents)>0 then inc(AutoFilledLines);
+          end;//if
+        if ((CompareText (sgStringList.Cells [colTranslation,i], sgStringList.Cells [colDefault,i]) =0) and (LineTranslatable(i)= True)) then SetCellBackground (i,clGreen);
+        if (CompareText (sgStringList.Cells [colTranslation,i], sgStringList.Cells [colDefault,i]) <>0)
+        and (CompareText (sgStringList.Cells [colTranslation,i], '')<>0) then inc (TranslatedCount);
+  end; //for i
+  DebugArray2D (TranslationStrings);
+  PrintStatus();
+  mnuFileTranslateFile.Enabled:=TF ;
+  lblNewLineStringTranslation.Visible:=TF;
+  lblBOMTranslation.Visible:=TF;
+  lblBOMTranslationWrite.Visible:=TF;
+  lblCharsetTranslation.Visible:=TF;
+  lblCharsetTranslationWrite.Visible:=TF;
+  lblArrow.Visible:=TF;
+  mnuEditNextUntranslated.Enabled:=tf ;
+  mnuEditPreviousUntranslated.Enabled:=tf ;
+  mnuEditGoToLine.Enabled:=TF  ;
+  mnuFileSaveAs.Enabled:=TF;
+  sgStringList.Enabled:=TF;
+  frmIniPrevMain.Caption:= ezIniPrev + LocalizeRowMultiple (ezFileToFile,RemovePath(FilenameDefault),RemovePath(FilenameTranslation));
+  lblStatusSecondary.Caption:= ezNewLines + ezSpace+ its(NewLinesFound) + '; ' + ezAutoFilledLines + ezSpace + its(AutoFilledLines);
+  tmrStatus.Enabled:=True ;
+  end; //with
+end;
+
+procedure TfrmIniPrevMain.mnuFileTranslateFileClick(Sender: TObject);
+begin
+     OpenTranslationFile();
+end;
+
+procedure TfrmIniPrevMain.mnuMiscSettingsClick(Sender: TObject);
+var
+  Result: Integer;
+begin
+  LocalizeSettings ;
+  Result:=   frmSettings.ShowModal;
+  if Result = mrOK then
+  GetSettings;
+  SaveSettings;
+end;
+
+procedure SetEditWidgets (ModeOn:Boolean);
+begin
+  with    frmIniPrevMain do
+  begin //with
+   mnuFile.Enabled:= not ModeOn ;
+   mnuEditCopyToTrans.Enabled:= ModeOn;
+   sgStringList.Enabled:= not ModeOn;
+   txtMDefault.visible:=ModeOn;
+   txtMTranslation.Visible:=ModeOn;
+   cmdOkay.visible:=ModeOn;
+   cmdCancel.visible:=ModeOn;
+
+   if ModeOn = true then
+     sgStringList.Font.Color:= cl3DDkShadow
+   else
+     sgStringList.Font.Color:= clDefault;
+   end; //with
+end;
+
+
+procedure TfrmIniPrevMain.sgStringListDblClick(Sender: TObject);
+begin
+ SetEditWidgets(True );
+ txtMDefault.Text:= sgStringList.Cells [colDefault,sgStringList.Selection.Top];
+ txtMTranslation.Text:= sgStringList.Cells [colTranslation,sgStringList.Selection.Top];
+txtMTranslation.SetFocus ;
+end;
+
+procedure TfrmIniPrevMain.sgStringListKeyPress(Sender: TObject; var Key: char);
+begin
+if (Ord(key)) = 13 then
+  begin
+    SetEditWidgets(True );
+    txtMDefault.Text:= sgStringList.Cells [colDefault,sgStringList.Selection.Top];
+    txtMTranslation.Text:= sgStringList.Cells [colTranslation,sgStringList.Selection.Top];
+    txtMTranslation.SetFocus ;
+  end;//if
+end;
+
+procedure TfrmIniPrevMain.sgStringListPrepareCanvas(sender: TObject; aCol, aRow: Integer; aState: TGridDrawState);
+begin
+   If ((aCol = colTranslation) and (aRow>0)) then
+   sgStringList.Canvas.Brush.Color:= SgSlBG[aRow];
+   if ((aRow >0) and (aRow= sgStringList.Selection.Top)) then
+   sgStringList.Canvas.Brush.Color:= clTeal  ;
+   sgStringList.Canvas.Font.Color:= clBlack;
+end;
+
+procedure TfrmIniPrevMain.tmrStatusTimer(Sender: TObject);
+begin
+  lblStatusSecondary.Caption:='' ;
+  tmrStatus.Enabled:=False;
+end;
+
+procedure TfrmIniPrevMain.txtMTranslationChange(Sender: TObject);
+begin
+
+end;
+
+
+function UTF8StringReplace(const S, OldPattern, NewPattern: string{;  Flags: TReplaceFlags}): string;
+var
+  StringFull: UTF16String;
+  StartPosition: integer;
+  i: integer=1;
+begin
+       StringFull:= UTF8ToUTF16 (s) ;
+       repeat
+         //ShowMessage (UTF8upperCase(OldPattern) +crlf + UTF8UpperCase(UTF16ToUTF8(StringFull)));
+       StartPosition:=PosEx (UTF8LowerCase(OldPattern),UTF8LowerCase(UTF16ToUTF8(StringFull)),i);  //There is nu utf16 to lowercase
+       if StartPosition= 0 then
+         if i=1 then StringFull:= s else break
+       else
+       begin
+         //Result:= UTF16ToUTF8(LeftStr(StringFull,StartPosition-1)+ UTF8ToUTF16(NewPattern)+ RightStr(StringFull, UTF8Length (StringFull)-StartPosition-UTF8Length(OldPattern)+1));
+         StringFull:= UTF16ToUTF8(LeftStr(StringFull,StartPosition-1)+ UTF8ToUTF16(NewPattern)+ RightStr(StringFull, UTF8Length (StringFull)-StartPosition-UTF8Length(OldPattern)+1));
+         //ShowMessage (StringFull);
+         i:=StartPosition+1;
+       end; //else
+     until StartPosition=0;
+     Result:=StringFull;
+end;
+
+procedure TfrmIniPrevMain.FormCreate(Sender: TObject);
+const
+  TF= false;  //Since the same items are enabled/disabled in different subs, TF is easier for copy/paste
+begin
+     SetOS;
+     SetLength(SgSlBG,1 );
+   if DebugMode =true then
+   begin
+     try   DeleteFile (AppendPathDelim(ProgramDirectory) + DebugLog);
+       except
+     end; //try
+   end; //if
+  Charset:= 0;  //TODO: Is this needed?
+  Localize();
+  mnuFileTranslateFile.Enabled:=TF ;
+  txtMDefault.Visible:=TF;
+  txtMTranslation.Visible:=TF;
+  cmdOkay.visible:=TF;
+  cmdCancel.visible:=TF;
+  lblNewLineStringDefault.Visible:=TF;
+  lblNewLineStringTranslation.Visible:=TF;
+  lblBOMDefault.Visible:=TF;
+  lblBOMTranslation.Visible:=TF;
+  lblBOMTranslationWrite.Visible:=TF;
+  lblCharsetDefault.Visible:=TF;
+  lblCharsetTranslation.Visible:=TF;
+  lblCharsetTranslationWrite.Visible:=TF;
+  lblArrow.Visible:=TF;
+  lblStatus.Visible:=TF;
+  sgStringList.Enabled:=TF;
+  mnuFileSaveTranslation.Enabled:=TF;
+  mnuFileSaveAs.Enabled:=TF;
+  mnuEditNextUntranslated.Enabled:=tf;
+  mnuEditPreviousUntranslated.Enabled:=tf;
+  mnuEditFind.Enabled:=tf;
+  mnuEditFindNext.Enabled:=TF;
+  mnuEditFindPrev.Enabled:=TF;
+  mnuEditGoToLine.Enabled:=TF;
+  mnuEditCopyToTrans.Enabled:=TF;
+
+  sgStringList.Columns.add;
+  sgStringList.Columns.add;
+  sgStringList.Columns.add;
+  sgStringList.Columns.add;
+  sgStringList.Columns.add;
+ // Reposition;
+  sgStringList.Columns[0].Title.Caption:= ezRow;
+  sgStringList.Columns[1].Title.Caption:= ezSection;
+  sgStringList.Columns[2].Title.Caption:= ezKey;
+  sgStringList.Columns[3].Title.Caption:= ezDefault;
+  sgStringList.Columns[4].Title.Caption:= ezTranslation;
+  lblStatus.Caption :='' ;
+  lblStatusSecondary.Caption :='' ;
+
+ end;
+
+procedure OkayClicked();
+  var
+  i:integer;
+ begin
+ with frmIniPrevMain do
+ begin //with
+  SetEditWidgets(false);
+  sgStringList.Cells [colDefault,sgStringList.Selection.Top]:= txtMDefault.Text;
+  sgStringList.Cells [colTranslation,sgStringList.Selection.Top]:=  txtMTranslation.Text;
+  SetCellBackground(sgStringList.Selection.Top,clWhite);
+  for i:= 0 to Length(TranslationStrings) do
+  begin //for i
+    if TranslationStrings[i,1]= sgStringList.Cells[colRow,sgStringList.Selection.Top] then
+      begin //if
+        TranslationStrings[i,0]:= sgStringList.Cells[colKey,StrToInt(TranslationStrings[i,1])]  + RowSplitter + sgStringList.Cells[colTranslation,sgStringList.Selection.Top];
+        break;
+      end; //if
+  end; //for i
+  if Unsaved = False then frmIniPrevMain.Caption:= frmIniPrevMain.Caption + '*';
+  Unsaved:=True;
+  mnuFileSaveTranslation.Enabled:= true ;
+  PrintStatus();
+ end;  //with
+end;
+
+procedure TfrmIniPrevMain.txtMTranslationKeyPress(Sender: TObject; var Key: char
+  );
+begin
+if ord(Key) = 10 then OkayClicked();
+if ord(key)= 27 then  SetEditWidgets(False);
+end;
+
+procedure TfrmIniPrevMain.cmdOkayClick(Sender: TObject);
+ begin
+ OkayClicked();
+end;
+
+procedure TfrmIniPrevMain.FormClose(Sender: TObject;
+  var CloseAction: TCloseAction);
+begin
+  SaveSettings;
+end;
+
+function SaveBefore ():Integer;
+var
+   RetVal:integer;
+begin
+     RetVal:= QuestionDlg(ezFileNotSaved, ezFileNotSaved + CrLf + ezDoYouWantToSaveTheFileBeforeExit,
+        mtCustom,  // removes the bitmap
+        [mrYes,ezYes,mrNo,ezNo,mrCancel,ezCancel],'');
+     if RetVal= mrYes then SaveTranslation(FilenameTranslation);
+     Result:=RetVal;
+end;
+
+procedure TfrmIniPrevMain.FormCloseQuery(Sender: TObject; var CanClose: boolean);
+begin
+    if Unsaved= true then
+    begin  //if
+      if SaveBefore()= mrCancel then CanClose:=false;
+    end; //if
+end;
+
+procedure TfrmIniPrevMain.cmdCancelClick(Sender: TObject);
+begin
+  SetEditWidgets(False);
+end;
+
+procedure TfrmIniPrevMain.FormResize(Sender: TObject);
+begin
+  Reposition;
+end;
+
+procedure TfrmIniPrevMain.lblBOMTranslationWriteClick(Sender: TObject);
+begin
+   BOMTranslation:=not BOMTranslation;
+   if BOMTranslation= true then lblBOMTranslationWrite.Caption:= ezBOM else lblBOMTranslationWrite.Caption:= ezNoBOM;
+end;
+
+function ShiftCharset(InputCharset: Integer ): Integer;
+var
+  RetVal: Integer;
+begin
+  //ShowMessage (IntToStr (Length(ezCharsetName ))+ ';' + IntToStr(InputCharset) );
+  RetVal:= InputCharset;
+     if InputCharset < Length(ezCharsetName)-1 then RetVal:= InputCharset + 1 else RetVal:=0;
+  Result:= RetVal ;
+end;
+
+procedure TfrmIniPrevMain.lblCharsetDefaultClick(Sender: TObject);
+begin
+  CharsetDefault:= ShiftCharset(CharsetDefault);
+  lblCharsetDefault.Caption:= ezCharsetName[CharsetDefault];
+  lblCharsetDefault.Enabled:=False;
+  OpenMainFile(FilenameDefault,CharsetDefault, False);
+end;
+
+procedure TfrmIniPrevMain.lblCharsetTranslationClick(Sender: TObject);
+begin
+     if Unsaved=True then
+         if QuestionDlg   (ezWarning, ezDoYouWantToOpenTheTranslationFileWithANewEncoding + crlf +ezTheChangesInYourTranslationAreNotSavedIfYouPressYesTheyWillBeLost,
+             mtCustom, [mrYes,ezYes,mrNo,ezNo],'') = mrNo then exit;
+      CharsetTranslation:= ShiftCharset(CharsetTranslation);
+      lblCharsetTranslation.Caption:= ezCharsetName[CharsetTranslation];
+      OpenTranslationFile(FilenameTranslation,CharsetTranslation);
+end;
+
+procedure TfrmIniPrevMain.lblCharsetTranslationWriteClick(Sender: TObject);
+begin
+    CharsetTranslationWrite:= ShiftCharset(CharsetTranslationWrite);
+    lblCharsetTranslationWrite.Caption:= ezCharsetName[CharsetTranslationWrite];
+    if  CharsetTranslationWrite=ord(EncodingANSI) then
+    begin
+      lblBOMTranslationWrite.Caption:=ezNoBOM;
+      lblBOMTranslationWrite.Enabled:=false
+    end
+    else
+    begin
+      if BOMTranslation= True then lblBOMTranslationWrite.Caption:= ezBOM else lblBOMTranslationWrite.Caption:= ezNoBOM;
+      lblBOMTranslationWrite.Enabled:=True;
+    end;
+    //OpenTranslationFile(FilenameTranslation,CharsetTranslation);
+end;
+
+//Copies the contents of the main line into the translation line (works only in edit mode)
+procedure MainIntoTranslation;
+begin
+     with frmIniPrevMain do
+       txtMTranslation.Text:= txtMDefault.Text;
+end;
+
+procedure TfrmIniPrevMain.mnuEditCopyToTransClick(Sender: TObject);
+begin
+     MainIntoTranslation;
+end;
+
+procedure TfrmIniPrevMain.mnuAddNewStringsClick(Sender: TObject);
+var
+  i:integer;
+begin
+    odMultipleFiles.Title:=ezSelectTranslationFile;
+    odMultipleFiles.Filter:= (ezLanguageFiles +  '(*.lng)|*.lng|' + ezTextFiles +'(*.txt)|*.txt|'  + ezAllFiles +'(*.*)|*.*|');
+    if odMultipleFiles.Execute = False then exit;
+    for i:=0 to odMultipleFiles.Files.Count -1 do
+    begin //for
+      FilenameTranslation:= odMultipleFiles.Files[i];
+      //FileName:= FilenameTranslation;
+      OpenTranslationFile(FilenameTranslation);
+      Unsaved:=True;
+      SaveTranslation(FilenameTranslation);
+    end; //for i
+    for i:=1 to sgStringList.RowCount - 1 do sgStringList.Cells[colTranslation,i]:=''; //Cleans translations column
+    frmIniPrevMain.Caption:= ezIniPrev;
+    FilenameTranslation:= '';
+end;
+
+procedure TfrmIniPrevMain.mnuFileExitClick(Sender: TObject);
+begin
+  Close;
+end;
+
+
+
+
+//Returns True if the sought string is in the line
+//SearchCol= 0 for searching in main strings; 1 for translation strings only; 2 for searching in both columns
+function SearchLine(LineNumber:integer; SearchColumns: Integer=2):boolean;
+var
+  RetVal: Boolean = false;
+  LineString: array [0..1] of string;
+begin
+with frmIniPrevMain do
+begin //with
+      case SearchColumns of
+       0: begin //0 //Search main strings only
+         LineString [0]:= RemoveIgnoreChars(sgStringList.Cells [colDefault,LineNumber], SearchIgnoreChars);
+          if (InStr (LineString[0], SearchString,1,SearchCaseSensitive ) > 0) then RetVal:=True;
+        end; //0
+
+     1: begin //1  //Search translation strings only
+        LineString [1]:= RemoveIgnoreChars(sgStringList.Cells [colTranslation,LineNumber],SearchIgnoreChars);
+       if (InStr (LineString[1], SearchString,1,SearchCaseSensitive ) > 0) then RetVal:=True;
+       end; //1
+     2: begin //2  //Search everywhere
+         LineString [0]:= RemoveIgnoreChars(sgStringList.Cells [colDefault,LineNumber],SearchIgnoreChars);
+         LineString [1]:= RemoveIgnoreChars(sgStringList.Cells [colTranslation,LineNumber],SearchIgnoreChars);
+         if (InStr (LineString[0], SearchString,1,SearchCaseSensitive ) > 0)
+         or (InStr (LineString[1], SearchString,1,SearchCaseSensitive ) > 0)
+         then RetVal:=True;
+        end //2
+     end; //case
+end; //with
+Result:=RetVal;
+end;
+
+function FindNext (StartLine: Integer;SearchColumns: Integer=2): Integer;  //Searches a next occurence of a string
+var
+  i:Integer;
+  RetVal: integer=-1;
+begin
+with frmIniPrevMain do
+  begin //with
+   for i:=StartLine to frmIniPrevMain.sgStringList.RowCount-1 do
+    begin //for
+     if SearchLine(i,frmSearch.cboSearchColumn.ItemIndex)= True then
+      begin //if
+        RetVal:=i;
+        break;
+      end; //if
+     end; //for
+  end; //with
+Result:= RetVal;
+end;
+
+function FindPrev (StartLine:Integer;SearchColumns: Integer=2):Integer;   //Searches a previous occurence of a string
+var
+  i:Integer;
+  RetVal: integer=-1;
+begin
+with frmIniPrevMain do
+begin //with
+for i:=StartLine downto 1 do
+   begin //for
+         if SearchLine(i,frmSearch.cboSearchColumn.ItemIndex)= True then
+         begin //if
+           RetVal:=i;
+           break;
+         end; //if
+   end; //for
+end; //with
+Result:= RetVal;
+end;
+
+
+procedure TfrmIniPrevMain.mnuEditFindClick(Sender: TObject);
+var
+  Result: Integer;
+  i: integer;
+  SearchResult:Integer;
+begin
+repeat
+  Result:= frmSearch.ShowModal;
+  if Result = mrOK then
+  begin //if
+    frmIniPrevMain.mnuEditFindNext.Enabled:=True;
+    frmIniPrevMain.mnuEditFindPrev.Enabled:=True;
+    for i:= 0 to Length(SearchIgnoreChars)-1 do
+      begin //for
+       SearchIgnoreChars[i]:='';
+      end; //for
+      with frmSearch do
+        begin //with
+          SearchString:= txtSoughtText.Text;
+          if (cbgIgnoreChars.Checked[0] = true) then SearchIgnoreChars[0]:='&';
+          if (cbgIgnoreChars.Checked[1] = true) then SearchIgnoreChars[1]:='_';
+          if (cbgIgnoreChars.Checked[2] = true) then SearchIgnoreChars[2]:=txtIgnoreChar.text ;
+          SearchCaseSensitive:= chkCaseSensitive.Checked;
+          case rgDirection.ItemIndex of
+             0: SearchResult:= FindNext(sgStringList.Selection.Top+1);
+             1: SearchResult:= FindPrev(sgStringList.Selection.Top-1);
+             2: begin
+                   SearchResult:= FindNext(1);
+                   rgDirection.ItemIndex:=0;
+                end  //2
+           end; //case
+         end;//with
+        if  (SearchResult > 0)
+        then  frmIniPrevMain.sgStringList.Row:= SearchResult
+        else QuestionDlg   (ezSearchComplete, ezSearchComplete,
+             mtCustom,  // Should remove the bitmap, but does not
+             [mrOK,ezOkay],'');
+  end; //if
+until Result= mrCancel;    //This is quite an ugly solution, it shall be rewritten some day.
+end;
+
+procedure TfrmIniPrevMain.mnuEditFindNextClick(Sender: TObject);
+var
+  SearchResult: integer =0;
+begin
+     SearchResult:= FindNext(sgStringList.Selection.Top+1);
+     if (SearchResult>0) then
+       frmIniPrevMain.sgStringList.Row:= SearchResult;
+end;
+
+procedure TfrmIniPrevMain.mnuEditFindPrevClick(Sender: TObject);
+var
+  SearchResult: integer =0;
+begin
+     SearchResult:= FindPrev(sgStringList.Selection.Top-1);
+     if (SearchResult>0) then
+       frmIniPrevMain.sgStringList.Row:= SearchResult;
+end;
+
+procedure TfrmIniPrevMain.mnuEditGoToLineClick(Sender: TObject);
+var
+   LineNumber: integer;
+begin
+     frmGoto.speLineNumber.MaxValue:= frmIniPrevMain.sgStringList.RowCount -1;
+    if frmGoto.ShowModal = mrOK then
+       begin
+         LineNumber:= frmGoto.speLineNumber.Value;
+         frmIniPrevMain.sgStringList.row:= LineNumber ;
+       end;
+end;
+
+procedure TfrmIniPrevMain.mnuEditNextUntranslatedClick(Sender: TObject);
+var
+  i:integer;
+begin
+with sgStringList do
+begin //with
+     for i:= Row+1  to RowCount-1 do
+     begin //for i
+           if LineTranslatable(i)= True then
+           if (Cells [colDefault,i]=Cells [colTranslation,i]) or (Cells [colTranslation,i]='') then
+           begin
+             Row:= i;
+             break;
+           end;
+     end; //for i
+end; //with
+end;
+
+procedure TfrmIniPrevMain.mnuEditPreviousUntranslatedClick(Sender: TObject);
+var
+  i:integer;
+begin
+with sgStringList do
+begin //with
+     for i:= Row-1  downto 1 do //Row 0 are the captions
+     begin //for i
+           if LineTranslatable(i)= True then
+           if (Cells [colDefault,i]=Cells [colTranslation,i]) or (Cells [colTranslation,i]='') then
+           begin
+             Row:= i;
+             break;
+           end;
+     end; //for i
+end; //with
+end;
+
+
+end.
+
