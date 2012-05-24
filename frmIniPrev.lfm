@@ -1,0 +1,323 @@
+object frmIniPrevMain: TfrmIniPrevMain
+  Left = 402
+  Height = 483
+  Top = 176
+  Width = 664
+  Caption = 'Ini Translator'
+  ClientHeight = 463
+  ClientWidth = 664
+  Constraints.MinHeight = 483
+  Constraints.MinWidth = 664
+  FormStyle = fsStayOnTop
+  Menu = mmMain
+  OnClose = FormClose
+  OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
+  OnResize = FormResize
+  LCLVersion = '0.9.31'
+  object sgStringList: TStringGrid
+    Left = 16
+    Height = 266
+    Top = 39
+    Width = 632
+    AutoAdvance = aaNone
+    AutoEdit = False
+    ExtendedSelect = False
+    FixedCols = 0
+    HeaderHotZones = []
+    HeaderPushZones = []
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goRowSelect, goDblClickAutoSize, goSmoothScroll, goDontScrollPartCell]
+    ParentBiDiMode = False
+    RowCount = 1
+    ScrollBars = ssAutoVertical
+    TabOrder = 0
+    OnDblClick = sgStringListDblClick
+    OnKeyPress = sgStringListKeyPress
+    OnPrepareCanvas = sgStringListPrepareCanvas
+    ColWidths = (
+      30
+      97
+      29
+      106
+      76
+    )
+  end
+  object lblNewLineStringDefault: TLabel
+    Left = 5
+    Height = 14
+    Top = 312
+    Width = 13
+    Caption = 'NL'
+    Font.CharSet = 4
+    Font.Color = clBlack
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
+    ParentColor = False
+    ParentFont = False
+  end
+  object txtMDefault: TMemo
+    Left = 104
+    Height = 90
+    Top = 80
+    Width = 400
+    BorderSpacing.InnerBorder = 5
+    ScrollBars = ssAutoBoth
+    TabOrder = 1
+    WordWrap = False
+  end
+  object txtMTranslation: TMemo
+    Left = 104
+    Height = 90
+    Top = 184
+    Width = 400
+    BorderSpacing.InnerBorder = 5
+    OnChange = txtMTranslationChange
+    OnKeyPress = txtMTranslationKeyPress
+    ScrollBars = ssAutoBoth
+    TabOrder = 2
+    WordWrap = False
+  end
+  object cmdOkay: TButton
+    Left = 176
+    Height = 25
+    Hint = 'Use Enter for a new line and Ctrl+Enter to complete editing.'
+    Top = 280
+    Width = 75
+    Caption = 'Okay'
+    OnClick = cmdOkayClick
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 3
+  end
+  object cmdCancel: TButton
+    Left = 328
+    Height = 25
+    Top = 280
+    Width = 75
+    Caption = 'Cancel'
+    OnClick = cmdCancelClick
+    TabOrder = 4
+  end
+  object lblNewLineStringTranslation: TLabel
+    Left = 5
+    Height = 14
+    Top = 328
+    Width = 13
+    Caption = 'NL'
+    Font.CharSet = 4
+    Font.Color = clBlack
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
+    ParentColor = False
+    ParentFont = False
+  end
+  object lblStatus: TLabel
+    Left = 168
+    Height = 16
+    Top = 312
+    Width = 424
+    AutoSize = False
+    Caption = 'Status'
+    Font.CharSet = 4
+    Font.Color = clBlack
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
+    ParentColor = False
+    ParentFont = False
+  end
+  object lblCharsetDefault: TLabel
+    Left = 40
+    Height = 14
+    Top = 312
+    Width = 26
+    Caption = 'UTF8'
+    Enabled = False
+    Font.CharSet = 4
+    Font.Color = clBlack
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
+    ParentColor = False
+    ParentFont = False
+    OnClick = lblCharsetDefaultClick
+  end
+  object lblCharsetTranslation: TLabel
+    Left = 40
+    Height = 14
+    Hint = 'Encoding, used when reading the file. Click on it to change it.'
+    Top = 328
+    Width = 26
+    Caption = 'UTF8'
+    Font.CharSet = 4
+    Font.Color = clBlack
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
+    ParentColor = False
+    ParentFont = False
+    ParentShowHint = False
+    ShowHint = True
+    OnClick = lblCharsetTranslationClick
+  end
+  object lblBOMDefault: TLabel
+    Left = 96
+    Height = 14
+    Top = 312
+    Width = 23
+    Caption = 'BOM'
+    Enabled = False
+    ParentColor = False
+  end
+  object lblBOMTranslation: TLabel
+    Left = 96
+    Height = 14
+    Hint = 'Show if BOM is present in the file.'
+    Top = 328
+    Width = 23
+    Caption = 'BOM'
+    Enabled = False
+    ParentColor = False
+    ParentShowHint = False
+    ShowHint = True
+  end
+  object lblStatusSecondary: TLabel
+    Left = 280
+    Height = 14
+    Top = 328
+    Width = 32
+    Caption = 'Status'
+    ParentColor = False
+  end
+  object lblArrow: TLabel
+    Left = 152
+    Height = 14
+    Top = 328
+    Width = 13
+    Caption = '->'
+    ParentColor = False
+  end
+  object lblCharsetTranslationWrite: TLabel
+    Left = 168
+    Height = 14
+    Hint = 'Encoding, used when writing the file. Click on it to change it.'
+    Top = 328
+    Width = 26
+    Caption = 'UTF8'
+    ParentColor = False
+    ParentShowHint = False
+    ShowHint = True
+    OnClick = lblCharsetTranslationWriteClick
+  end
+  object lblBOMTranslationWrite: TLabel
+    Left = 224
+    Height = 14
+    Hint = 'Write the file with or without BOM. Click to toggle.'
+    Top = 328
+    Width = 23
+    Caption = 'BOM'
+    ParentColor = False
+    ParentShowHint = False
+    ShowHint = True
+    OnClick = lblBOMTranslationWriteClick
+  end
+  object mmMain: TMainMenu
+    left = 16
+    object mnuFile: TMenuItem
+      Caption = 'File'
+      object mnuFileOpenMain: TMenuItem
+        Caption = 'Open main translation file'
+        ShortCut = 16463
+        OnClick = mnuFileOpenMainClick
+      end
+      object mnuFileTranslateFile: TMenuItem
+        Caption = 'Open file for translation'
+        ShortCut = 16468
+        OnClick = mnuFileTranslateFileClick
+      end
+      object mnuFileSaveTranslation: TMenuItem
+        Caption = 'Save translation'
+        ShortCut = 16467
+        OnClick = mnuFileSaveTranslationClick
+      end
+      object mnuFileSaveAs: TMenuItem
+        Caption = 'Save translation as...'
+        OnClick = mnuFileSaveAsClick
+      end
+      object mnuFileSeparator01: TMenuItem
+        Caption = '-'
+      end
+      object mnuFileExit: TMenuItem
+        Caption = 'Exit'
+        ShortCut = 32883
+        OnClick = mnuFileExitClick
+      end
+    end
+    object mnuEdit: TMenuItem
+      Caption = 'Edit'
+      object mnuEditNextUntranslated: TMenuItem
+        Caption = 'Next untranslated'
+        ShortCut = 115
+        OnClick = mnuEditNextUntranslatedClick
+      end
+      object mnuEditPreviousUntranslated: TMenuItem
+        Caption = 'Previous untranslated'
+        ShortCut = 8307
+        OnClick = mnuEditPreviousUntranslatedClick
+      end
+      object mnuEditFind: TMenuItem
+        Caption = 'Find...'
+        ShortCut = 16454
+        OnClick = mnuEditFindClick
+      end
+      object mnuEditFindNext: TMenuItem
+        Caption = 'Find next'
+        ShortCut = 114
+        OnClick = mnuEditFindNextClick
+      end
+      object mnuEditFindPrev: TMenuItem
+        Caption = 'Find previous'
+        ShortCut = 8306
+        OnClick = mnuEditFindPrevClick
+      end
+      object mnuEditGoToLine: TMenuItem
+        Caption = 'Go to line...'
+        ShortCut = 16455
+        OnClick = mnuEditGoToLineClick
+      end
+      object mnuEditSeparator01: TMenuItem
+        Caption = '-'
+      end
+      object mnuEditCopyToTrans: TMenuItem
+        Caption = 'Copy the contents of the main line into the translation line'
+        ShortCut = 32835
+        OnClick = mnuEditCopyToTransClick
+      end
+    end
+    object mnuMisc: TMenuItem
+      Caption = 'Misc'
+      object mnuMiscSettings: TMenuItem
+        Caption = 'Settings'
+        OnClick = mnuMiscSettingsClick
+      end
+      object mnuAddNewStrings: TMenuItem
+        Caption = 'Add new strings to multiple translations'
+        OnClick = mnuAddNewStringsClick
+      end
+    end
+  end
+  object odSingleFile: TOpenDialog
+    Options = [ofNoReadOnlyReturn, ofEnableSizing, ofViewDetail, ofAutoPreview]
+    left = 72
+  end
+  object sdSingleFile: TSaveDialog
+    left = 224
+  end
+  object odMultipleFiles: TOpenDialog
+    Options = [ofAllowMultiSelect, ofEnableSizing, ofViewDetail, ofAutoPreview]
+    left = 144
+  end
+  object tmrStatus: TTimer
+    Enabled = False
+    Interval = 5000
+    OnTimer = tmrStatusTimer
+    left = 296
+  end
+end
