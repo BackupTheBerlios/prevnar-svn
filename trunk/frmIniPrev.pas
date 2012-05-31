@@ -24,7 +24,8 @@ interface
 
 uses
   {Classes,} SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, Menus, Grids,
-  StdCtrls, strutils, LCLProc, ExtCtrls, {LCLType,} frmPNSettings, frmPNSearch, frmPNGoto, pnCommons  ;
+  StdCtrls, strutils, LCLProc, ExtCtrls, {LCLType,} Classes
+  , frmPNSettings, frmPNSearch, frmPNGoto, pnCommons, frmPNAbout;
 
 
 type
@@ -45,9 +46,14 @@ type
     lblCharsetDefault: TLabel;
     lblStatus: TLabel;
     lblNewLineStringTranslation: TLabel;
+    mnuFileUnloadAuxLang: TMenuItem;
+    mnuMiscAbout: TMenuItem;
+    mnuFileLoadAuxLang: TMenuItem;
+    mnuViewShowTranslated: TMenuItem;
+    mnuView: TMenuItem;
     mnuEditSeparator01: TMenuItem;
     mnuEditCopyToTrans: TMenuItem;
-    mnuAddNewStrings: TMenuItem;
+    mnuMiscAddNewStrings: TMenuItem;
     mnuEditFindPrev: TMenuItem;
     mnuEditFindNext: TMenuItem;
     mnuFileExit: TMenuItem;
@@ -71,6 +77,7 @@ type
     mnuFile: TMenuItem;
     odSingleFile: TOpenDialog;
     sgStringList: TStringGrid;
+    txtMAux: TMemo;
     txtMTranslation: TMemo;
     procedure cmdCancelClick(Sender: TObject);
     procedure cmdOkayClick(Sender: TObject);
@@ -83,7 +90,8 @@ type
     procedure lblCharsetTranslationClick(Sender: TObject);
     procedure lblCharsetTranslationWriteClick(Sender: TObject);
     procedure mnuEditCopyToTransClick(Sender: TObject);
-    procedure mnuAddNewStringsClick(Sender: TObject);
+    procedure mnuFileUnloadAuxLangClick(Sender: TObject);
+    procedure mnuMiscAddNewStringsClick(Sender: TObject);
     procedure mnuEditFindNextClick(Sender: TObject);
     procedure mnuEditFindPrevClick(Sender: TObject);
     procedure mnuEditGoToLineClick(Sender: TObject);
@@ -95,13 +103,15 @@ type
     procedure mnuFileSaveAsClick(Sender: TObject);
     procedure mnuFileSaveTranslationClick(Sender: TObject);
     procedure mnuFileTranslateFileClick(Sender: TObject);
+    procedure mnuMiscAboutClick(Sender: TObject);
     procedure mnuMiscSettingsClick(Sender: TObject);
+    procedure mnuFileLoadAuxLangClick(Sender: TObject);
+    procedure mnuViewShowTranslatedClick(Sender: TObject);
     procedure sgStringListDblClick(Sender: TObject);
     procedure sgStringListKeyPress(Sender: TObject; var Key: char);
     procedure sgStringListPrepareCanvas(sender: TObject; aCol, aRow: Integer;
       aState: TGridDrawState);
     procedure tmrStatusTimer(Sender: TObject);
-    procedure txtMTranslationChange(Sender: TObject);
     procedure txtMTranslationKeyPress(Sender: TObject; var Key: char);
   private
     { private declarations }
@@ -122,19 +132,21 @@ var
   colRow:integer = 0;
   colSection:Integer= 1;
   colKey:integer=2;
-  colDefault:integer=3;
+  colMain:integer=3;
   colTranslation:integer=4;
   //End of adjustable vars
 
   Unsaved:Boolean = False;
+  AuxLoaded: Boolean = False;
   SearchString:String;
   SearchCaseSensitive: Boolean = False;
-  CharsetDefault: integer;
+  CharsetMain: integer;
   CharsetTranslation: integer;
   CharsetTranslationWrite: Integer;
   FilenameDefault: string;
   FilenameTranslation: string;
   TranslationStrings: array of array of String;
+  AuxStrings: array of array of String;
   NewLineTranslation: String ;
   BOMTranslation: Boolean ;
   TranslationNewRows: array of string;
@@ -178,16 +190,18 @@ end;
 procedure DebugLine(AString: string);  //Appends a line to the debug log
 var
  FileVar: TextFile;
+ DebugFileName: String;
 begin
  if debugmode = true then
  begin //if
-  AssignFile(FileVar, AppendPathDelim(ProgramDirectory)+ debuglog);
+   DebugFileName:=UTF8ToSys(AppendPathDelim(ProgramDirectory) + debuglog);
+  AssignFile(FileVar, DebugFileName);
   {$I+} //use exceptions
   try
-    if FileExists (AppendPathDelim(ProgramDirectory) + debuglog) then
+    if FileExists (DebugFileName) then
        Append (FileVar)
     else
-       Rewrite(FileVar);
+    Rewrite(FileVar);
     Writeln(FileVar,AString);
     CloseFile(FileVar);
   except
@@ -197,6 +211,20 @@ begin
     end;
   end; //try
  end; //if debugmode
+end;
+
+procedure DebugArray1D(AStringArray1D: StringArray1D);
+var
+ i: integer;
+begin
+  if debugmode = true then
+  begin
+  DebugLine (crlf+'Dumping array with size ' + its(Length(AStringArray1D)));
+  for i:=0 to Length(AStringArray1D) -1 do
+  begin
+      DebugLine ('Line:' + IntToStr ( i) + tab + AStringArray1D[i] + TAB +AStringArray1D[i]);
+    end;
+  end;
 end;
 
 procedure DebugArray2D(AStringArray2D: StringArray2D);
@@ -328,6 +356,7 @@ begin
   ezSpace:=' ';
   ezOkay:='Okay';
   ezCancel:='Cancel';
+  ezError:='Error';
   ezRow:= 'Row';
   ezSection:= 'Section';
   ezKey:= 'Key';
@@ -349,7 +378,9 @@ begin
 // ezCharsetName[2]:='UTF16(BE)'; //Charset still not supported
 // ezCharsetName[3]:='UTF16(LE)'; //Charset still not supported
   ezSelectMainfile:='Select main file';
-  ezSelectTranslationFile:= 'SelectTranslationFile';
+  ezSelectTranslationFile:= 'Select translation file';
+  ezSelectAuxFile:= 'Select auxiliary file';
+  ezAnErrorOccuredWhenTryingToLoadAuxiliaryFile:='An error occured when trying to load auxiliary file “%1”';
   ezSettings:= 'Settings';
   ezRowSplitter:= 'Row splitter';
   ezFillInEmptyLines:= 'Fill in empty lines';
@@ -388,10 +419,11 @@ begin //with
   sgStringList.Columns[colRow].Width:= 30;
   sgStringList.Columns[colSection].Width:= 50;
   sgStringList.Columns[colKey].Width:= 30;
-  sgStringList.Columns[colDefault].Width:=  trunc((frmIniPrevMain.sgStringList.Width - 90) / 2) - 20;
-  sgStringList.Columns[colTranslation].Width:=  frmIniPrevMain.sgStringList.Columns[colDefault].Width;
+  sgStringList.Columns[colMain].Width:=  trunc((frmIniPrevMain.sgStringList.Width - 90) / 2) - 20;
+  sgStringList.Columns[colTranslation].Width:=  frmIniPrevMain.sgStringList.Columns[colMain].Width;
   TopDefault:= frmIniPrevMain.Height - lblNewLineStringDefault.Height -40;
   TopTranslation:= TopDefault+20;
+
   lblNewLineStringDefault.Top:= TopDefault;
   lblNewLineStringTranslation.Top:= TopTranslation;
   lblStatus.top:= TopDefault;
@@ -404,18 +436,46 @@ begin //with
   lblBOMTranslationWrite.top:=TopTranslation ;
   lblArrow.Top:=TopTranslation ;
   txtMDefault.Top:= 85;
-  txtMDefault.Height:= trunc(frmIniPrevMain.Height/2- 125 );
   txtMDefault.left:= txtMTranslation.Left;
   txtMDefault.Width:= frmIniPrevMain.Width - 100;
-  txtMTranslation.Top:= txtMDefault.Top + txtMDefault.Height  + 10;
-  txtMTranslation.Height:= txtMDefault.Height ;
+  if AuxLoaded =true then
+  begin
+    txtMDefault.Height:= trunc(frmIniPrevMain.Height/2.3- 125 );
+    txtMAux.Height:= txtMDefault.Height;
+    txtMAux.Top:=txtMDefault.Top + txtMDefault.Height  + 10;
+    txtMTranslation.Top:= txtMAux.Top + txtMAux.Height  + 10;
+  end
+  else
+  begin
+     txtMDefault.Height:= trunc(frmIniPrevMain.Height/2- 125 );
+     txtMTranslation.Top:= txtMDefault.Top + txtMDefault.Height  + 10;
+  end;
+
+  txtMAux.Left:= 50;
+  txtMAux.Width:= txtMDefault.Width;
+  txtMTranslation.Height:= txtMDefault.Height;
   txtMTranslation.Left:= 50;
-  txtMTranslation.Width:= txtMDefault.Width ;
+  txtMTranslation.Width:= txtMDefault.Width;
   cmdOkay.top:= txtMTranslation.top+ txtMTranslation.Height + 10    ;
   cmdOkay.left:= trunc(frmIniPrevMain.Width/2 - frmIniPrevMain.cmdOkay.Width);
   cmdCancel.top:= cmdOkay.top ;
   cmdCancel.left:= frmIniPrevMain.cmdOkay.left+frmIniPrevMain.cmdOkay.Width +1;
 end; //with
+end;
+
+procedure DeleteStringGridRows (aStringGrid: TStringGrid);
+var
+   i:integer;
+begin
+//.clean causes problems
+  for i:= 1 to aStringGrid.RowCount-1 do
+  begin //for i
+    aStringGrid.DeleteRow (1);
+  end; //for i
+  {//I could not find what the hex is TGridZoneSet
+  sgStringList.Clean (0,1,sgStringList.RowCount-1, sgStringList.ColCount -1, gzNormal  ) ;
+  //Error: Incompatible type for arg no. 5: Got "TGridZone", expected "TGridZoneSet"
+  }
 end;
 
 procedure OpenMainFile (FileName: string=''; ForcedCharset:integer= ord(EncodingUndefined); CleanTable:Boolean=True);
@@ -444,24 +504,12 @@ begin
     DefaultFileContents:= FileGet(FileName, 0,0, ForcedCharset );
     if Charset = 0 then lblBOMDefault.Caption:= ezNoBOM else lblBOMDefault.Caption:= ezBOM;
     lblCharsetDefault.Caption:= ezCharsetName[Charset];
-    CharsetDefault:=Charset;
+    CharsetMain:=Charset;
     NewLine:= NewLineString(DefaultFileContents);
     lblNewLineStringDefault.Caption:= NewLineToText(NewLine ) ;
     MainStrings:= Split (DefaultFileContents, NewLine );
-    if CleanTable = True then
-    begin //if
-    //Next 4 lines remove the lines in the table, which is necessary when a new file is open.
-    //.clean causes problems
-      for i:= 1 to sgStringList.RowCount-1 do
-      begin //for i
-        sgStringList.DeleteRow (1);
-      end; //for i
-      {//I could not find what the hex is TGridZoneSet
-      sgStringList.Clean (0,1,sgStringList.RowCount-1, sgStringList.ColCount -1, gzNormal  ) ;
-      //Error: Incompatible type for arg no. 5: Got "TGridZone", expected "TGridZoneSet"
-      }
-    end; //if
-     RowNumber:=1;
+    if CleanTable = True then DeleteStringGridRows(sgStringList);
+    RowNumber:=1;
     for i:= 0 to (Length (MainStrings )-1) do
       begin //for i
       MainLine:= MainStrings[i];
@@ -476,7 +524,7 @@ begin
         sgStringList.Cells [colSection, RowNumber]:= SectionName;
         sgStringList.Cells [colRow ,RowNumber]:= IntToStr (RowNumber);
         sgStringList.Cells [colKey,RowNumber]:= LeftStr  (MainLine,SplitterLocation-1);
-        sgStringList.Cells [colDefault,RowNumber ]:= Mid (MainLine,SplitterLocation+1, Length(MainLine)-SplitterLocation );
+        sgStringList.Cells [colMain,RowNumber ]:= Mid (MainLine,SplitterLocation+1, Length(MainLine)-SplitterLocation );
         RowNumber:=RowNumber+1;
        end; //if
     end; //for i
@@ -488,7 +536,8 @@ begin
   SetLength(SgSlBG,sgStringList.RowCount);
   for i:=0 to sgStringList.RowCount-1 do SgSlBG[i]:= clWhite ;
 
-  lblStatus.Caption:= ezTotalStrings + IntToStr ( sgStringList.RowCount -1)   ;
+  lblStatus.Caption:= ezTotalStrings + IntToStr ( sgStringList.RowCount -1);
+  mnuFileLoadAuxLang.Enabled:=TF;
   mnuFileTranslateFile.Enabled:=TF;
   mnuFileTranslateFile.Enabled:=TF ;
   lblNewLineStringDefault.Visible:=TF;
@@ -503,6 +552,80 @@ end;
 procedure TfrmIniPrevMain.mnuFileOpenMainClick(Sender: TObject);
 begin
      OpenMainFile('',ord(EncodingUndefined),True);
+end;
+
+//AuxStrings is two dimentional, so in the future it might support more than one aux file
+procedure OpenAuxFile (FileName: string=''; ForcedCharset:integer= ord(EncodingUndefined); CleanTable:Boolean=True);
+const
+  TF= true;
+var
+  FileContents: string;
+  ContentStrings: StringArray1D;
+  MainLine: string;
+  NewLine: string;
+  i,j: integer;
+  Key: String;
+  RowNumber: integer;
+  SplitterLocation:integer;
+  SectionName: string= '';
+begin
+  with frmIniPrevMain do
+  begin //with
+  if FileName ='' then
+   try
+    begin
+    odSingleFile.Title:=ezSelectAuxFile;
+    odSingleFile.Filter:= (ezLanguageFiles +  '(*.lng)|*.lng|' + ezTextFiles +'(*.txt)|*.txt|'  + ezAllFiles +'(*.*)|*.*|');
+      if odSingleFile.Execute = false then exit;
+      FilenameDefault:= odSingleFile.FileName;
+      FileName:=FilenameDefault  ;
+    end;
+    FileContents:= FileGet(FileName, 0,0);
+    if Charset = 0 then lblBOMDefault.Caption:= ezNoBOM else lblBOMDefault.Caption:= ezBOM;
+    lblCharsetDefault.Caption:= ezCharsetName[Charset];
+    CharsetMain:=Charset;
+    NewLine:= NewLineString(FileContents);
+    lblNewLineStringDefault.Caption:= NewLineToText(NewLine ) ;
+    ContentStrings:= Split (FileContents, NewLine );
+    SetLength(AuxStrings,sgStringList.RowCount+1,1);
+    //RowNumber:=1;
+    DebugLine ('помощен');
+  for i:=0 to Length(ContentStrings)-1 do
+  begin //for i
+    if CompareText(LeftStr (MainLine,Length(SectionCloser)), SectionOpener)= 0 then
+    begin
+       SectionName:= Unclose(MainLine, SectionOpener, SectionCloser);
+    end;
+    if PosEx (RowSplitter,ContentStrings[i])<> 0 then
+      begin //if
+        Key:=LeftStr (ContentStrings[i],PosEx (RowSplitter,contentStrings[i])-1) ;
+           for j:=0 to sgStringList.RowCount -1 do
+           begin //for j
+              if  (CompareText (Key,sgStringList.Cells[colKey,j])=0)
+              and ((CompareText (SectionName,sgStringList.Cells[colSection,j])=0) or (Length(SectionName)= 0) or (IgnoreSections=True))
+              then
+              begin //if
+                SplitterLocation:= PosEx(RowSplitter,ContentStrings[i]);
+                AuxStrings [j,0]:=  Mid (ContentStrings[i],SplitterLocation+1, Length(ContentStrings[i])-SplitterLocation ) ; //The KEY value is not usable, since there might be equal keys in different sections
+                DebugLine (its(i) +'='+ AuxStrings [j,0]);
+                break;
+              end  //if
+           end //for j    }
+      end //if
+  end; //for i
+  AuxStrings[sgStringList.RowCount,0]:=RemovePath(FileName);
+  AuxLoaded:=True;
+  mnuFileUnloadAuxLang.Enabled:=True;
+  except
+    QuestionDlg(ezError,LocalizeRowMultiple(ezAnErrorOccuredWhenTryingToLoadAuxiliaryFile,FileName),
+      mtCustom, [mrOK,ezOkay],'');
+  end;
+  end; //with
+end;
+
+procedure TfrmIniPrevMain.mnuFileLoadAuxLangClick(Sender: TObject);
+begin
+     OpenAuxFile();
 end;
 
 procedure InsertX (var AArray: StringArray2D; const Index: Cardinal; const Value: StringArray1D);
@@ -568,7 +691,7 @@ begin //with
       if CompareText(RightStr(TranslationStrings [i,0],1), RowSplitter) = 0 then //Checks if the row is emty
       begin //if
         if frmSettings.chkFillInEmpty.Checked  = True
-        then FullStrings:= FullStrings+ sgStringList.cells[colKey,StrToInt (TranslationStrings[i,1])]+ RowSplitter+  sgStringList.cells[colDefault,strtoint(TranslationStrings[i,1])] +NewLineTranslation;
+        then FullStrings:= FullStrings+ sgStringList.cells[colKey,StrToInt (TranslationStrings[i,1])]+ RowSplitter+  sgStringList.cells[colMain,strtoint(TranslationStrings[i,1])] +NewLineTranslation;
       end
     else
        FullStrings:= FullStrings + TranslationStrings [i,0] + NewLineTranslation
@@ -615,7 +738,7 @@ var
 begin
      for i:= 0 to Length(IgnoreLines)-1  do
      begin //for i
-           if CompareText(LeftStr (frmIniPrevMain.sgStringList.Cells [colDefault,LineNumber],Length(IgnoreLines [i])),IgnoreLines [i]) = 0
+           if CompareText(LeftStr (frmIniPrevMain.sgStringList.Cells [colMain,LineNumber],Length(IgnoreLines [i])),IgnoreLines [i]) = 0
            then RetVal:=False  ;
      end; //for i
      Result:=RetVal;
@@ -633,7 +756,7 @@ begin //with
      for i:= 1 to sgStringList.RowCount -1 do
      begin //for i
        if LineTranslatable(i)= false then inc(UntranslatableCount) else
-         if (CompareText (sgStringList.Cells[colDefault,i], sgStringList.Cells[colTranslation,i])= 0 )
+         if (CompareText (sgStringList.Cells[colMain,i], sgStringList.Cells[colTranslation,i])= 0 )
          or (Length(sgStringList.Cells[colTranslation,i])=0)
          then inc(UntranslatedCount);
      end; //next i
@@ -673,8 +796,8 @@ AutotranslateIgnoreChars[4]:='!';
   begin //with
     for i:= 1 to sgStringList.RowCount -1 do
     begin//for
-      //if (CompareText(RemoveIgnoreChars(sgStringList.Cells[colDefault,i],AutotranslateIgnoreChars),RemoveIgnoreChars(SoughtString,AutotranslateIgnoreChars))=0)
-     if (CompareText(sgStringList.Cells[colDefault,i],SoughtString)=0)
+      //if (CompareText(RemoveIgnoreChars(sgStringList.Cells[colMain,i],AutotranslateIgnoreChars),RemoveIgnoreChars(SoughtString,AutotranslateIgnoreChars))=0)
+     if (CompareText(sgStringList.Cells[colMain,i],SoughtString)=0)
           and (Length (sgStringList.Cells[colTranslation,i])>0)then
        begin //if
          RetVal:=sgStringList.Cells[colTranslation,i];
@@ -683,6 +806,27 @@ AutotranslateIgnoreChars[4]:='!';
     end; //for
   end; //with
   Result:= RetVal;
+end;
+
+procedure ShowHideItems(ListMode: DisplayMode=DisplayAll);
+var
+  i,j:integer;
+begin
+  with frmIniPrevMain do
+  begin //with
+    for i:= 1 to sgStringList.RowCount -1 do
+    begin //for i
+       if (ListMode=DisplayAll) then sgStringList.RowHeights [i]:=sgStringList.DefaultRowHeight ;
+       if (ListMode=DisplayUntranslatedOnly) then
+         begin
+           if ((CompareText (sgStringList.Cells [colMain,i], sgStringList.Cells [colTranslation,i]) <> 0)
+             and (Length(sgStringList.Cells [colTranslation,i]) >0))
+             or (LineTranslatable(i) = False)
+             then sgStringList.RowHeights [i]:=0
+             else sgStringList.RowHeights [i]:=sgStringList.DefaultRowHeight;
+         end; //if
+    end; //for i
+end; //with
 end;
 
 procedure OpenTranslationFile (FileName: string=''; ForcedCharset:integer= ord(EncodingUndefined));
@@ -742,23 +886,23 @@ begin //with
   DebugLine ('Translation File Contents' +crlf+ TranslationFileContents);
   for i:=0 to Occurs(TranslationFileContents,NewLine)-1 do
   begin //for i
-             NextNewLine:= PosEx (NewLine, TranslationFileContents,CurrentNewLine)+length(NewLine);
-             TranslationStrings[i,0]:= MidStr (TranslationFileContents,CurrentNewLine,NextNewLine- CurrentNewLine-length(NewLine));
-             CurrentNewLine:= NextNewLine;
-             if PosEx (RowSplitter,TranslationStrings[i,0])<> 0 then
-               begin //if
-                 Key:=LeftStr (TranslationStrings[i,0],PosEx (RowSplitter,TranslationStrings[i,0])-1) ;
-                 for j:=0 to sgStringList.RowCount -1 do
-                   begin //for j
-                     if  CompareText (key,sgStringList.Cells[colKey,j])=0 then
-                     begin //if
-                       sgStringList.Cells[colTranslation,j]:= Mid (TranslationStrings[i,0],Length(key+RowSplitter)+1,100);
-                       TranslationStrings [i,1]:= sgStringList.Cells[colRow,j]; //The KEY value is not usable, since there might be equal keys in different sections
-                       break;
-                     end  //if
-                   end //for j    }
-               end //if
-    end; //for i
+    NextNewLine:= PosEx (NewLine, TranslationFileContents,CurrentNewLine)+length(NewLine);
+    TranslationStrings[i,0]:= MidStr (TranslationFileContents,CurrentNewLine,NextNewLine- CurrentNewLine-length(NewLine));
+    CurrentNewLine:= NextNewLine;
+      if PosEx (RowSplitter,TranslationStrings[i,0])<> 0 then
+      begin //if
+        Key:=LeftStr (TranslationStrings[i,0],PosEx (RowSplitter,TranslationStrings[i,0])-1) ;
+           for j:=0 to sgStringList.RowCount -1 do
+           begin //for j
+              if  CompareText (key,sgStringList.Cells[colKey,j])=0 then
+              begin //if
+                sgStringList.Cells[colTranslation,j]:= Mid (TranslationStrings[i,0],Length(key+RowSplitter)+1,100);
+                TranslationStrings [i,1]:= sgStringList.Cells[colRow,j]; //The KEY value is not usable, since there might be equal keys in different sections
+                break;
+              end  //if
+           end //for j    }
+      end //if
+  end; //for i
     TranslatedCount:=0;
     //Here is the concept- there are two ways to add strings, that are missing in the translation file
     //1. Append them to the end of the file
@@ -769,7 +913,7 @@ begin //with
   begin //for i
       {case sgStringList.Cells [colTranslation,i] of
          '': SetCellBackground (sgStringList,colTranslation,i,clYellow);
-         sgStringList.Cells [colDefault,i]: SetCellBackground (sgStringList,colTranslation,i,clCream)
+         sgStringList.Cells [colMain,i]: SetCellBackground (sgStringList,colTranslation,i,clCream)
          else inc (TranslatedCount);
     end;}
         //I tried to use CASE with no succes, it occured that the version of Lazarus that I had some bugs.
@@ -777,9 +921,9 @@ begin //with
           begin //if Line is missing in the translation file
             SetCellBackground(i,clYellow);
             SetLength(InsertLine,2);
-            NewLineContents:= SearchTranslatedString (sgStringList.Cells [colDefault,i]);
+            NewLineContents:= SearchTranslatedString (sgStringList.Cells [colMain,i]);
             if (Length(NewLineContents)>0) and (ConfirmAutotranslate= 2) then
-                  if(QuestionDlg(ezAutotranslate,  LocalizeRowMultiple(ezDoYouWantToAutotranslate1to2,sgStringList.Cells [colDefault,i],NewLineContents,sgStringList.Cells[colKey,i]),
+                  if(QuestionDlg(ezAutotranslate,  LocalizeRowMultiple(ezDoYouWantToAutotranslate1to2,sgStringList.Cells [colMain,i],NewLineContents,sgStringList.Cells[colKey,i]),
                   mtCustom, [mrYes,ezYes,mrNo,ezNo],'')) = mrNo then NewLineContents:='';
             InsertLine [0]:=sgStringList.Cells [colKey,i]+ RowSplitter+  NewLineContents ;
             sgStringList.Cells [colTranslation,i]:=  NewLineContents;
@@ -788,8 +932,8 @@ begin //with
             inc(NewLinesFound);
             if length(NewLineContents)>0 then inc(AutoFilledLines);
           end;//if
-        if ((CompareText (sgStringList.Cells [colTranslation,i], sgStringList.Cells [colDefault,i]) =0) and (LineTranslatable(i)= True)) then SetCellBackground (i,clGreen);
-        if (CompareText (sgStringList.Cells [colTranslation,i], sgStringList.Cells [colDefault,i]) <>0)
+        if ((CompareText (sgStringList.Cells [colTranslation,i], sgStringList.Cells [colMain,i]) =0) and (LineTranslatable(i)= True)) then SetCellBackground (i,clGreen);
+        if (CompareText (sgStringList.Cells [colTranslation,i], sgStringList.Cells [colMain,i]) <>0)
         and (CompareText (sgStringList.Cells [colTranslation,i], '')<>0) then inc (TranslatedCount);
   end; //for i
   DebugArray2D (TranslationStrings);
@@ -817,6 +961,11 @@ begin
      OpenTranslationFile();
 end;
 
+procedure TfrmIniPrevMain.mnuMiscAboutClick(Sender: TObject);
+begin
+  frmAbout.ShowModal;
+end;
+
 procedure TfrmIniPrevMain.mnuMiscSettingsClick(Sender: TObject);
 var
   Result: Integer;
@@ -828,15 +977,36 @@ begin
   SaveSettings;
 end;
 
+
+
+procedure TfrmIniPrevMain.mnuViewShowTranslatedClick(Sender: TObject);
+var
+  i:integer;
+begin
+frmIniPrevMain.mnuViewShowTranslated.Checked:= not (frmIniPrevMain.mnuViewShowTranslated.Checked);
+  if frmIniPrevMain.mnuViewShowTranslated.Checked= False
+     then ShowHideItems (DisplayUntranslatedOnly)
+     else ShowHideItems(DisplayAll);
+end;
+
 procedure SetEditWidgets (ModeOn:Boolean);
 begin
-  with    frmIniPrevMain do
+  with frmIniPrevMain do
   begin //with
    mnuFile.Enabled:= not ModeOn ;
-   mnuEditCopyToTrans.Enabled:= ModeOn;
+   mnuEditCopyToTrans.Enabled:=ModeOn;
+   mnuEditNextUntranslated.Enabled:= not ModeOn;
+   mnuEditPreviousUntranslated.Enabled:=not ModeOn;
+   mnuEditFind.Enabled:=not ModeOn;
+   mnuEditFindNext.Enabled:=not ModeOn;
+   mnuEditFindPrev.Enabled:=not ModeOn;
+   mnuEditGoToLine.Enabled:=not ModeOn;
+   mnuView.Enabled:=not ModeOn;
+   mnuMiscAddNewStrings.Enabled:=not ModeOn;
    sgStringList.Enabled:= not ModeOn;
    txtMDefault.visible:=ModeOn;
    txtMTranslation.Visible:=ModeOn;
+   txtMAux.Visible:=ModeOn ;
    cmdOkay.visible:=ModeOn;
    cmdCancel.visible:=ModeOn;
 
@@ -847,24 +1017,28 @@ begin
    end; //with
 end;
 
+procedure EditItem;
+begin
+  with frmIniPrevMain do
+  begin
+    SetEditWidgets(True );
+    txtMDefault.Text:= sgStringList.Cells [colMain,sgStringList.Selection.Top];
+    txtMTranslation.Text:= sgStringList.Cells [colTranslation,sgStringList.Selection.Top];
+    txtMAux.Visible:=AuxLoaded;
+    if AuxLoaded=True then txtMAux.Text:= AuxStrings[Length(AuxStrings)-1,0]+ CrLf +  AuxStrings [sgStringList.Selection.Top,0];
+    Reposition;
+    txtMTranslation.SetFocus ;
+  end;
+end;
 
 procedure TfrmIniPrevMain.sgStringListDblClick(Sender: TObject);
 begin
- SetEditWidgets(True );
- txtMDefault.Text:= sgStringList.Cells [colDefault,sgStringList.Selection.Top];
- txtMTranslation.Text:= sgStringList.Cells [colTranslation,sgStringList.Selection.Top];
-txtMTranslation.SetFocus ;
+  EditItem;
 end;
 
 procedure TfrmIniPrevMain.sgStringListKeyPress(Sender: TObject; var Key: char);
 begin
-if (Ord(key)) = 13 then
-  begin
-    SetEditWidgets(True );
-    txtMDefault.Text:= sgStringList.Cells [colDefault,sgStringList.Selection.Top];
-    txtMTranslation.Text:= sgStringList.Cells [colTranslation,sgStringList.Selection.Top];
-    txtMTranslation.SetFocus ;
-  end;//if
+if (Ord(key)) = 13 {Enter} then EditItem;
 end;
 
 procedure TfrmIniPrevMain.sgStringListPrepareCanvas(sender: TObject; aCol, aRow: Integer; aState: TGridDrawState);
@@ -882,12 +1056,6 @@ begin
   tmrStatus.Enabled:=False;
 end;
 
-procedure TfrmIniPrevMain.txtMTranslationChange(Sender: TObject);
-begin
-
-end;
-
-
 function UTF8StringReplace(const S, OldPattern, NewPattern: string{;  Flags: TReplaceFlags}): string;
 var
   StringFull: UTF16String;
@@ -897,7 +1065,7 @@ begin
        StringFull:= UTF8ToUTF16 (s) ;
        repeat
          //ShowMessage (UTF8upperCase(OldPattern) +crlf + UTF8UpperCase(UTF16ToUTF8(StringFull)));
-       StartPosition:=PosEx (UTF8LowerCase(OldPattern),UTF8LowerCase(UTF16ToUTF8(StringFull)),i);  //There is nu utf16 to lowercase
+       StartPosition:=PosEx (UTF8LowerCase(OldPattern),UTF8LowerCase(UTF16ToUTF8(StringFull)),i);  //There is no utf16 to lowercase
        if StartPosition= 0 then
          if i=1 then StringFull:= s else break
        else
@@ -915,18 +1083,22 @@ procedure TfrmIniPrevMain.FormCreate(Sender: TObject);
 const
   TF= false;  //Since the same items are enabled/disabled in different subs, TF is easier for copy/paste
 begin
-     SetOS;
-     SetLength(SgSlBG,1 );
-   if DebugMode =true then
+   SetOS;
+   SetLength(SgSlBG,1 );
+   frmIniPrevMain.mnuViewShowTranslated.Checked:=True;
+   //If you get an error on goDontScrollPartCell, then your version of Lazarus is too old. You need at 0.9.31 or later.
+   sgStringList.Options:=  [goFixedVertLine,goFixedHorzLine,goVertLine,goHorzLine,goColSizing,goRowSelect,goDblClickAutoSize,goDontScrollPartCell] ;
+   if DebugMode= true then
    begin
-     try   DeleteFile (AppendPathDelim(ProgramDirectory) + DebugLog);
+     try  DeleteFile (UTF8ToSys(AppendPathDelim(ProgramDirectory) + debuglog));
        except
      end; //try
    end; //if
   Charset:= 0;  //TODO: Is this needed?
   Localize();
-  mnuFileTranslateFile.Enabled:=TF ;
+  mnuFileTranslateFile.Enabled:=TF;
   txtMDefault.Visible:=TF;
+  txtMAux.Visible:= AuxLoaded;
   txtMTranslation.Visible:=TF;
   cmdOkay.visible:=TF;
   cmdCancel.visible:=TF;
@@ -941,6 +1113,7 @@ begin
   lblArrow.Visible:=TF;
   lblStatus.Visible:=TF;
   sgStringList.Enabled:=TF;
+  mnuFileLoadAuxLang.Enabled:=TF;
   mnuFileSaveTranslation.Enabled:=TF;
   mnuFileSaveAs.Enabled:=TF;
   mnuEditNextUntranslated.Enabled:=tf;
@@ -973,8 +1146,8 @@ procedure OkayClicked();
  begin
  with frmIniPrevMain do
  begin //with
-  SetEditWidgets(false);
-  sgStringList.Cells [colDefault,sgStringList.Selection.Top]:= txtMDefault.Text;
+  SetEditWidgets(False);
+  sgStringList.Cells [colMain,sgStringList.Selection.Top]:= txtMDefault.Text;
   sgStringList.Cells [colTranslation,sgStringList.Selection.Top]:=  txtMTranslation.Text;
   SetCellBackground(sgStringList.Selection.Top,clWhite);
   for i:= 0 to Length(TranslationStrings) do
@@ -1057,10 +1230,10 @@ end;
 
 procedure TfrmIniPrevMain.lblCharsetDefaultClick(Sender: TObject);
 begin
-  CharsetDefault:= ShiftCharset(CharsetDefault);
-  lblCharsetDefault.Caption:= ezCharsetName[CharsetDefault];
+  CharsetMain:= ShiftCharset(CharsetMain);
+  lblCharsetDefault.Caption:= ezCharsetName[CharsetMain];
   lblCharsetDefault.Enabled:=False;
-  OpenMainFile(FilenameDefault,CharsetDefault, False);
+  OpenMainFile(FilenameDefault,CharsetMain, False);
 end;
 
 procedure TfrmIniPrevMain.lblCharsetTranslationClick(Sender: TObject);
@@ -1102,7 +1275,14 @@ begin
      MainIntoTranslation;
 end;
 
-procedure TfrmIniPrevMain.mnuAddNewStringsClick(Sender: TObject);
+procedure TfrmIniPrevMain.mnuFileUnloadAuxLangClick(Sender: TObject);
+begin
+ SetLength(AuxStrings,0,0);
+ AuxLoaded:=False;
+ mnuFileUnloadAuxLang.Enabled:=False;
+end;
+
+procedure TfrmIniPrevMain.mnuMiscAddNewStringsClick(Sender: TObject);
 var
   i:integer;
 begin
@@ -1128,8 +1308,6 @@ begin
 end;
 
 
-
-
 //Returns True if the sought string is in the line
 //SearchCol= 0 for searching in main strings; 1 for translation strings only; 2 for searching in both columns
 function SearchLine(LineNumber:integer; SearchColumns: Integer=2):boolean;
@@ -1141,7 +1319,7 @@ with frmIniPrevMain do
 begin //with
       case SearchColumns of
        0: begin //0 //Search main strings only
-         LineString [0]:= RemoveIgnoreChars(sgStringList.Cells [colDefault,LineNumber], SearchIgnoreChars);
+         LineString [0]:= RemoveIgnoreChars(sgStringList.Cells [colMain,LineNumber], SearchIgnoreChars);
           if (InStr (LineString[0], SearchString,1,SearchCaseSensitive ) > 0) then RetVal:=True;
         end; //0
 
@@ -1150,7 +1328,7 @@ begin //with
        if (InStr (LineString[1], SearchString,1,SearchCaseSensitive ) > 0) then RetVal:=True;
        end; //1
      2: begin //2  //Search everywhere
-         LineString [0]:= RemoveIgnoreChars(sgStringList.Cells [colDefault,LineNumber],SearchIgnoreChars);
+         LineString [0]:= RemoveIgnoreChars(sgStringList.Cells [colMain,LineNumber],SearchIgnoreChars);
          LineString [1]:= RemoveIgnoreChars(sgStringList.Cells [colTranslation,LineNumber],SearchIgnoreChars);
          if (InStr (LineString[0], SearchString,1,SearchCaseSensitive ) > 0)
          or (InStr (LineString[1], SearchString,1,SearchCaseSensitive ) > 0)
@@ -1280,7 +1458,7 @@ begin //with
      for i:= Row+1  to RowCount-1 do
      begin //for i
            if LineTranslatable(i)= True then
-           if (Cells [colDefault,i]=Cells [colTranslation,i]) or (Cells [colTranslation,i]='') then
+           if (Cells [colMain,i]=Cells [colTranslation,i]) or (Cells [colTranslation,i]='') then
            begin
              Row:= i;
              break;
@@ -1298,7 +1476,7 @@ begin //with
      for i:= Row-1  downto 1 do //Row 0 are the captions
      begin //for i
            if LineTranslatable(i)= True then
-           if (Cells [colDefault,i]=Cells [colTranslation,i]) or (Cells [colTranslation,i]='') then
+           if (Cells [colMain,i]=Cells [colTranslation,i]) or (Cells [colTranslation,i]='') then
            begin
              Row:= i;
              break;

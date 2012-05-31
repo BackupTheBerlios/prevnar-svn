@@ -1,14 +1,14 @@
 object frmSettings: TfrmSettings
-  Left = 474
-  Height = 303
-  Top = 217
+  Left = 298
+  Height = 332
+  Top = 122
   Width = 514
   BorderStyle = bsSingle
   Caption = 'Settings'
-  ClientHeight = 303
+  ClientHeight = 332
   ClientWidth = 514
   OnCreate = FormCreate
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.1'
   object chkFillInEmpty: TCheckBox
     Left = 8
     Height = 17
@@ -23,7 +23,7 @@ object frmSettings: TfrmSettings
   object cmdOkay: TButton
     Left = 272
     Height = 23
-    Top = 258
+    Top = 296
     Width = 72
     Caption = 'Okay'
     ModalResult = 1
@@ -31,9 +31,9 @@ object frmSettings: TfrmSettings
     TabOrder = 1
   end
   object cmdCancel: TButton
-    Left = 356
+    Left = 360
     Height = 23
-    Top = 258
+    Top = 296
     Width = 72
     Caption = 'Cancel'
     ModalResult = 2
@@ -107,7 +107,7 @@ object frmSettings: TfrmSettings
   object cboConfirmAutotranslate: TComboBox
     Left = 8
     Height = 21
-    Top = 258
+    Top = 298
     Width = 176
     ItemHeight = 13
     ItemIndex = 0
@@ -122,9 +122,17 @@ object frmSettings: TfrmSettings
   object lblConfirmAutotranslate: TLabel
     Left = 8
     Height = 14
-    Top = 240
+    Top = 280
     Width = 202
     Caption = 'Ask for confirmation when autotranslating'
     ParentColor = False
+  end
+  object chkIgnoreSections: TCheckBox
+    Left = 8
+    Height = 17
+    Top = 232
+    Width = 92
+    Caption = 'Ignore sections'
+    TabOrder = 8
   end
 end

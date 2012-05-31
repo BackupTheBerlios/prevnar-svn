@@ -27,7 +27,7 @@ uses
   {$ENDIF}{$ENDIF}
   //Interfaces, // this includes the LCL widgetset
   Forms, Interfaces, frmIniPrev, frmPNSettings, frmPNSearch, frmPNGoto,
-  PNCommons;
+  PNCommons, frmPNAbout;
 
 {$R *.res}
 
@@ -38,6 +38,7 @@ begin
   Application.CreateForm(TfrmSettings, frmSettings);
   Application.CreateForm(TfrmSearch, frmSearch);
   Application.CreateForm(TfrmGoto, frmGoto);
+  Application.CreateForm(TfrmAbout, frmAbout);
   Application.Run;
 end.
 

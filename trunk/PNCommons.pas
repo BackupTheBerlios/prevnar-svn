@@ -33,6 +33,7 @@ type
   StringArray2D = array of array of string ;
   IntegerArray1D = array of integer;
   Encoding = (EncodingUndefined=-1,EncodingUTF8=0,EncodingANSI=1,EncodingUTF16_BE=2,EncodingUTF16_LE=3);
+  DisplayMode= (DisplayAll=0, DisplayUntranslatedOnly= 1, DisplayFuzzyOnly= 2, DisplayUntranslatedAndFusy= 3, DisplayTranslatedOnly=4);
   //TODO: I tried to use unumeration, but it occured that in Pascal Eum<> Integer, so the final result is odd.
 
 //Public functions
@@ -52,7 +53,6 @@ function OSVersion: integer;
 function RemovePath(FullFileName: string) : string;
 
 const
-  DebugMode= False;
   CrLf = #13 + #10;
   Cr = #13;
   Lf = #10;
@@ -64,16 +64,20 @@ const
   BOMUTF16LE= #255+#254;
   DebugLog= 'debuglog.txt';
   SettingsFile='prevnar.ini';
-
 var
    Charset: integer = 0;     {0=UTF8; 1=ANSI; 2=UTF16(BE); 3:=UTF16(LE)}
    Slash:string = '\'; //  For Dos, Windows and ReactOS= \, for *nix = /
+
+   {Vars adjustable trough the settings windows}
    RowSplitter : string = '=';
    SectionOpener: string;
    SectionCloser: string;
    FillBlanks {when saving translation}:Boolean= True;
    IgnoreLines: StringArray1D;
+   IgnoreSections: Boolean= false;
    ConfirmAutotranslate:Integer;
+   DebugMode: Boolean= False;
+   {End of adjustable vars}
 
   {Localization strings start here}
   ezFullStop: string;
@@ -86,6 +90,7 @@ var
   ezNo:String;
   ezOkay:String;
   ezCancel:String;
+  ezError:String;
   ezInvertedCommaOpen: string;
   ezInvertedCommaClose: string;
   ezIsLoaded: string;
@@ -114,7 +119,9 @@ var
   ezCharsetName: array [0..1{3}] of string; //TODO: To set it to 1..3 when UTF16 support is implemented.
   ezSelectMainfile: string;
   ezSelectTranslationFile: string;
+  ezSelectAuxFile: String;
   ezSaveTranslatedFileAs: String;
+  ezAnErrorOccuredWhenTryingToLoadAuxiliaryFile:String;
   ezSettings: String;
   ezRowSplitter: String;
   ezFillInEmptyLines: String;

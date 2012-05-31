@@ -32,6 +32,7 @@ type
   { TfrmSettings }
 
   TfrmSettings = class(TForm)
+    chkIgnoreSections: TCheckBox;
     cmdOkay: TButton;
     chkFillInEmpty: TCheckBox;
     cmdCancel: TButton;
@@ -94,11 +95,13 @@ begin
     + 'If you edit this file in an external tool (Notepad, etc), make sure to save it as UTF8 with BOM.'+ CrLf
     + ezSettingsHeaderLocalized+ CrLf
     +'RowSplitter=' + RowSplitter+ CrLf
-    +'SectionOpener=' + SectionOpener + CrLf
-    +'SectionCloser=' + SectionCloser + CrLf
-    +'FillBlanks=' + BooleanToString (FillBlanks) + CrLf
+    +'SectionOpener=' + SectionOpener+ CrLf
+    +'SectionCloser=' + SectionCloser+ CrLf
+    +'FillBlanks=' + BooleanToString (FillBlanks)+ CrLf
     +'IgnoreLines=' + UTF8StringReplace (txtIgnoreStarts.Lines.Text ,crlf,'\n',[rfIgnoreCase,rfReplaceAll])+ CrLf
-    +'ConfirmAutotranslate=' + its(ConfirmAutotranslate)
+    +'ConfirmAutotranslate=' + its(ConfirmAutotranslate)+CrLf
+    +'IgnoreSections=' + BooleanToString (IgnoreSections)+CrLf
+    +'DebugMode='+ BooleanToString(DebugMode)+ CrLf
     + CrLf ; //CrLf is needed, to assure that the value will be properly read, if the settings file cannot be deleted.
  end;  //with
  try
@@ -123,7 +126,6 @@ begin
    begin  //for
      Key:=LeftStr (SettingsContents[i],PosEx ('=',SettingsContents[i])-1) ;
      Value:= Mid (SettingsContents[i],Length(key+'=')+1,100);;
-     // ShowMessage ('>'+Mid (SettingsContents[i],Length(key+'=')+1,100)+'<');
      //WARNING: If the compiler returns an error on the next line, it means that your Lazarus is too old.
      case key of
        'RowSplitter': RowSplitter := Value; //Mid (SettingsContents[i],Length(key+'=')+1,100);
@@ -132,6 +134,9 @@ begin
        'FillBlanks': FillBlanks := StringToBoolean  (Mid (SettingsContents[i],Length(key+'=')+1,100));
        'IgnoreLines': IgnoreLines:= Split (mid(SettingsContents[i],Length(key+'=')+1,100),'\n');
        'ConfirmAutotranslate': ConfirmAutotranslate:= StrToInt (Value);
+       'IgnoreSections': IgnoreSections:= StringToBoolean(Value);
+       'DebugMode': DebugMode:=StringToBoolean(Value);
+       //except
      end;  //case
    end;  //for i
    except
@@ -149,6 +154,8 @@ IgnoreLines[0]:='no_translate';
 IgnoreLines[1]:='\\';
 IgnoreLines[2]:=Apostrophy;
 ConfirmAutotranslate:= 0;
+IgnoreSections:= False;
+DebugMode:=False;
 SaveSettings;
 end;
 
@@ -166,6 +173,7 @@ begin
    FillBlanks:= chkFillInEmpty.Checked;
    IgnoreLines:= Split(txtIgnoreStarts.Lines.Text ,CrLf);
    ConfirmAutotranslate:=cboConfirmAutotranslate.ItemIndex;
+  // IgnoreSections:=chkFillInEmpty.Checked;
  end; //with
 end;
 
@@ -179,6 +187,7 @@ begin
     chkFillInEmpty.Checked := FillBlanks;
     txtIgnoreStarts.Lines.Text:= Join(IgnoreLines,CrLf);
     cboConfirmAutotranslate.ItemIndex:=ConfirmAutotranslate;
+    chkIgnoreSections.Checked:=IgnoreSections;
   end; //with
 end;
 

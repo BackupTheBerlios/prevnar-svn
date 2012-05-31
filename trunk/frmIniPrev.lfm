@@ -1,7 +1,7 @@
 object frmIniPrevMain: TfrmIniPrevMain
-  Left = 402
+  Left = 237
   Height = 483
-  Top = 176
+  Top = 52
   Width = 664
   Caption = 'Ini Translator'
   ClientHeight = 463
@@ -14,10 +14,10 @@ object frmIniPrevMain: TfrmIniPrevMain
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnResize = FormResize
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.1'
   object sgStringList: TStringGrid
     Left = 16
-    Height = 266
+    Height = 314
     Top = 39
     Width = 632
     AutoAdvance = aaNone
@@ -26,7 +26,7 @@ object frmIniPrevMain: TfrmIniPrevMain
     FixedCols = 0
     HeaderHotZones = []
     HeaderPushZones = []
-    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goRowSelect, goDblClickAutoSize, goSmoothScroll, goDontScrollPartCell]
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goRowSelect, goDblClickAutoSize, goSmoothScroll]
     ParentBiDiMode = False
     RowCount = 1
     ScrollBars = ssAutoVertical
@@ -43,9 +43,9 @@ object frmIniPrevMain: TfrmIniPrevMain
     )
   end
   object lblNewLineStringDefault: TLabel
-    Left = 5
+    Left = 8
     Height = 14
-    Top = 312
+    Top = 384
     Width = 13
     Caption = 'NL'
     Font.CharSet = 4
@@ -58,7 +58,7 @@ object frmIniPrevMain: TfrmIniPrevMain
   object txtMDefault: TMemo
     Left = 104
     Height = 90
-    Top = 80
+    Top = 64
     Width = 400
     BorderSpacing.InnerBorder = 5
     ScrollBars = ssAutoBoth
@@ -68,10 +68,9 @@ object frmIniPrevMain: TfrmIniPrevMain
   object txtMTranslation: TMemo
     Left = 104
     Height = 90
-    Top = 184
+    Top = 256
     Width = 400
     BorderSpacing.InnerBorder = 5
-    OnChange = txtMTranslationChange
     OnKeyPress = txtMTranslationKeyPress
     ScrollBars = ssAutoBoth
     TabOrder = 2
@@ -81,7 +80,7 @@ object frmIniPrevMain: TfrmIniPrevMain
     Left = 176
     Height = 25
     Hint = 'Use Enter for a new line and Ctrl+Enter to complete editing.'
-    Top = 280
+    Top = 344
     Width = 75
     Caption = 'Okay'
     OnClick = cmdOkayClick
@@ -92,7 +91,7 @@ object frmIniPrevMain: TfrmIniPrevMain
   object cmdCancel: TButton
     Left = 328
     Height = 25
-    Top = 280
+    Top = 344
     Width = 75
     Caption = 'Cancel'
     OnClick = cmdCancelClick
@@ -101,7 +100,7 @@ object frmIniPrevMain: TfrmIniPrevMain
   object lblNewLineStringTranslation: TLabel
     Left = 5
     Height = 14
-    Top = 328
+    Top = 408
     Width = 13
     Caption = 'NL'
     Font.CharSet = 4
@@ -112,9 +111,9 @@ object frmIniPrevMain: TfrmIniPrevMain
     ParentFont = False
   end
   object lblStatus: TLabel
-    Left = 168
+    Left = 171
     Height = 16
-    Top = 312
+    Top = 384
     Width = 424
     AutoSize = False
     Caption = 'Status'
@@ -126,9 +125,9 @@ object frmIniPrevMain: TfrmIniPrevMain
     ParentFont = False
   end
   object lblCharsetDefault: TLabel
-    Left = 40
+    Left = 43
     Height = 14
-    Top = 312
+    Top = 384
     Width = 26
     Caption = 'UTF8'
     Enabled = False
@@ -144,7 +143,7 @@ object frmIniPrevMain: TfrmIniPrevMain
     Left = 40
     Height = 14
     Hint = 'Encoding, used when reading the file. Click on it to change it.'
-    Top = 328
+    Top = 408
     Width = 26
     Caption = 'UTF8'
     Font.CharSet = 4
@@ -158,9 +157,9 @@ object frmIniPrevMain: TfrmIniPrevMain
     OnClick = lblCharsetTranslationClick
   end
   object lblBOMDefault: TLabel
-    Left = 96
+    Left = 99
     Height = 14
-    Top = 312
+    Top = 384
     Width = 23
     Caption = 'BOM'
     Enabled = False
@@ -170,7 +169,7 @@ object frmIniPrevMain: TfrmIniPrevMain
     Left = 96
     Height = 14
     Hint = 'Show if BOM is present in the file.'
-    Top = 328
+    Top = 408
     Width = 23
     Caption = 'BOM'
     Enabled = False
@@ -181,7 +180,7 @@ object frmIniPrevMain: TfrmIniPrevMain
   object lblStatusSecondary: TLabel
     Left = 280
     Height = 14
-    Top = 328
+    Top = 408
     Width = 32
     Caption = 'Status'
     ParentColor = False
@@ -189,7 +188,7 @@ object frmIniPrevMain: TfrmIniPrevMain
   object lblArrow: TLabel
     Left = 152
     Height = 14
-    Top = 328
+    Top = 408
     Width = 13
     Caption = '->'
     ParentColor = False
@@ -198,7 +197,7 @@ object frmIniPrevMain: TfrmIniPrevMain
     Left = 168
     Height = 14
     Hint = 'Encoding, used when writing the file. Click on it to change it.'
-    Top = 328
+    Top = 408
     Width = 26
     Caption = 'UTF8'
     ParentColor = False
@@ -210,13 +209,23 @@ object frmIniPrevMain: TfrmIniPrevMain
     Left = 224
     Height = 14
     Hint = 'Write the file with or without BOM. Click to toggle.'
-    Top = 328
+    Top = 408
     Width = 23
     Caption = 'BOM'
     ParentColor = False
     ParentShowHint = False
     ShowHint = True
     OnClick = lblBOMTranslationWriteClick
+  end
+  object txtMAux: TMemo
+    Left = 104
+    Height = 90
+    Top = 160
+    Width = 400
+    BorderSpacing.InnerBorder = 5
+    ScrollBars = ssAutoBoth
+    TabOrder = 5
+    WordWrap = False
   end
   object mmMain: TMainMenu
     left = 16
@@ -231,6 +240,17 @@ object frmIniPrevMain: TfrmIniPrevMain
         Caption = 'Open file for translation'
         ShortCut = 16468
         OnClick = mnuFileTranslateFileClick
+      end
+      object mnuFileLoadAuxLang: TMenuItem
+        Caption = 'Load auxiliary language'
+        Enabled = False
+        Hint = 'Translation in the auxiliary language is shown in edit mode, to give you an extra hint for translating. Currently only one auxiliary file is supported.'
+        OnClick = mnuFileLoadAuxLangClick
+      end
+      object mnuFileUnloadAuxLang: TMenuItem
+        Caption = 'Unload auxiliary language'
+        Enabled = False
+        OnClick = mnuFileUnloadAuxLangClick
       end
       object mnuFileSaveTranslation: TMenuItem
         Caption = 'Save translation'
@@ -291,15 +311,27 @@ object frmIniPrevMain: TfrmIniPrevMain
         OnClick = mnuEditCopyToTransClick
       end
     end
+    object mnuView: TMenuItem
+      Caption = 'View'
+      object mnuViewShowTranslated: TMenuItem
+        Caption = 'Show translated'
+        Checked = True
+        OnClick = mnuViewShowTranslatedClick
+      end
+    end
     object mnuMisc: TMenuItem
       Caption = 'Misc'
       object mnuMiscSettings: TMenuItem
         Caption = 'Settings'
         OnClick = mnuMiscSettingsClick
       end
-      object mnuAddNewStrings: TMenuItem
+      object mnuMiscAddNewStrings: TMenuItem
         Caption = 'Add new strings to multiple translations'
-        OnClick = mnuAddNewStringsClick
+        OnClick = mnuMiscAddNewStringsClick
+      end
+      object mnuMiscAbout: TMenuItem
+        Caption = 'About'
+        OnClick = mnuMiscAboutClick
       end
     end
   end
