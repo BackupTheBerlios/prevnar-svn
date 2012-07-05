@@ -27,7 +27,7 @@ uses
   {$ENDIF}{$ENDIF}
   //Interfaces, // this includes the LCL widgetset
   Forms, Interfaces, frmIniPrev, frmPNSettings, frmPNSearch, frmPNGoto,
-  PNCommons, frmPNAbout;
+  PNCommons, frmPNAbout, charencstreams;
 
 {$R *.res}
 

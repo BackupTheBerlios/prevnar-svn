@@ -1,10 +1,10 @@
 object frmIniPrevMain: TfrmIniPrevMain
-  Left = 237
+  Left = 319
   Height = 483
-  Top = 52
+  Top = 53
   Width = 664
   Caption = 'Ini Translator'
-  ClientHeight = 463
+  ClientHeight = 462
   ClientWidth = 664
   Constraints.MinHeight = 483
   Constraints.MinWidth = 664
@@ -14,7 +14,7 @@ object frmIniPrevMain: TfrmIniPrevMain
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnResize = FormResize
-  LCLVersion = '1.1'
+  LCLVersion = '0.9.30.4'
   object sgStringList: TStringGrid
     Left = 16
     Height = 314
@@ -44,9 +44,9 @@ object frmIniPrevMain: TfrmIniPrevMain
   end
   object lblNewLineStringDefault: TLabel
     Left = 8
-    Height = 14
+    Height = 18
     Top = 384
-    Width = 13
+    Width = 18
     Caption = 'NL'
     Font.CharSet = 4
     Font.Color = clBlack
@@ -71,7 +71,7 @@ object frmIniPrevMain: TfrmIniPrevMain
     Top = 256
     Width = 400
     BorderSpacing.InnerBorder = 5
-    OnKeyPress = txtMTranslationKeyPress
+    OnKeyDown = txtMTranslationKeyDown
     ScrollBars = ssAutoBoth
     TabOrder = 2
     WordWrap = False
@@ -98,10 +98,10 @@ object frmIniPrevMain: TfrmIniPrevMain
     TabOrder = 4
   end
   object lblNewLineStringTranslation: TLabel
-    Left = 5
-    Height = 14
+    Left = 8
+    Height = 18
     Top = 408
-    Width = 13
+    Width = 18
     Caption = 'NL'
     Font.CharSet = 4
     Font.Color = clBlack
@@ -111,9 +111,9 @@ object frmIniPrevMain: TfrmIniPrevMain
     ParentFont = False
   end
   object lblStatus: TLabel
-    Left = 171
+    Left = 224
     Height = 16
-    Top = 384
+    Top = 382
     Width = 424
     AutoSize = False
     Caption = 'Status'
@@ -125,10 +125,10 @@ object frmIniPrevMain: TfrmIniPrevMain
     ParentFont = False
   end
   object lblCharsetDefault: TLabel
-    Left = 43
-    Height = 14
+    Left = 40
+    Height = 18
     Top = 384
-    Width = 26
+    Width = 31
     Caption = 'UTF8'
     Enabled = False
     Font.CharSet = 4
@@ -141,10 +141,10 @@ object frmIniPrevMain: TfrmIniPrevMain
   end
   object lblCharsetTranslation: TLabel
     Left = 40
-    Height = 14
+    Height = 18
     Hint = 'Encoding, used when reading the file. Click on it to change it.'
     Top = 408
-    Width = 26
+    Width = 31
     Caption = 'UTF8'
     Font.CharSet = 4
     Font.Color = clBlack
@@ -157,48 +157,49 @@ object frmIniPrevMain: TfrmIniPrevMain
     OnClick = lblCharsetTranslationClick
   end
   object lblBOMDefault: TLabel
-    Left = 99
-    Height = 14
+    Left = 152
+    Height = 18
     Top = 384
-    Width = 23
+    Width = 31
     Caption = 'BOM'
     Enabled = False
     ParentColor = False
   end
   object lblBOMTranslation: TLabel
-    Left = 96
-    Height = 14
+    Left = 152
+    Height = 18
     Hint = 'Show if BOM is present in the file.'
     Top = 408
-    Width = 23
+    Width = 31
     Caption = 'BOM'
     Enabled = False
     ParentColor = False
     ParentShowHint = False
     ShowHint = True
+    OnClick = lblBOMTranslationClick
   end
   object lblStatusSecondary: TLabel
-    Left = 280
-    Height = 14
+    Left = 320
+    Height = 18
     Top = 408
-    Width = 32
+    Width = 39
     Caption = 'Status'
     ParentColor = False
   end
   object lblArrow: TLabel
-    Left = 152
-    Height = 14
+    Left = 200
+    Height = 18
     Top = 408
-    Width = 13
+    Width = 12
     Caption = '->'
     ParentColor = False
   end
   object lblCharsetTranslationWrite: TLabel
-    Left = 168
-    Height = 14
+    Left = 224
+    Height = 18
     Hint = 'Encoding, used when writing the file. Click on it to change it.'
     Top = 408
-    Width = 26
+    Width = 31
     Caption = 'UTF8'
     ParentColor = False
     ParentShowHint = False
@@ -206,11 +207,11 @@ object frmIniPrevMain: TfrmIniPrevMain
     OnClick = lblCharsetTranslationWriteClick
   end
   object lblBOMTranslationWrite: TLabel
-    Left = 224
-    Height = 14
+    Left = 280
+    Height = 18
     Hint = 'Write the file with or without BOM. Click to toggle.'
     Top = 408
-    Width = 23
+    Width = 31
     Caption = 'BOM'
     ParentColor = False
     ParentShowHint = False
@@ -227,30 +228,67 @@ object frmIniPrevMain: TfrmIniPrevMain
     TabOrder = 5
     WordWrap = False
   end
+  object lblAnsiCPMain: TLabel
+    Left = 112
+    Height = 18
+    Top = 384
+    Width = 16
+    Caption = '___'
+    Enabled = False
+    ParentColor = False
+  end
+  object lblAnsiCPTranslation: TLabel
+    Left = 112
+    Height = 18
+    Top = 408
+    Width = 16
+    Caption = '___'
+    Enabled = False
+    ParentColor = False
+    OnClick = lblAnsiCPTranslationClick
+  end
   object mmMain: TMainMenu
     left = 16
     object mnuFile: TMenuItem
       Caption = 'File'
       object mnuFileOpenMain: TMenuItem
         Caption = 'Open main translation file'
-        ShortCut = 16463
         OnClick = mnuFileOpenMainClick
+        object mnuFileOpenMainBrowse: TMenuItem
+          Caption = 'Browse...'
+          ShortCut = 16463
+          OnClick = mnuFileOpenMainBrowseClick
+        end
+        object mnuFileMainSeparator: TMenuItem
+          Caption = '-'
+        end
       end
-      object mnuFileTranslateFile: TMenuItem
+      object mnuFileOpenTrans: TMenuItem
         Caption = 'Open file for translation'
-        ShortCut = 16468
-        OnClick = mnuFileTranslateFileClick
+        OnClick = mnuFileOpenTransClick
+        object mnuFileOpenTransBrowse: TMenuItem
+          Caption = 'Browse...'
+          ShortCut = 16468
+          OnClick = mnuFileOpenTransBrowseClick
+        end
+        object mnuFileOpenTransSeparator: TMenuItem
+          Caption = '-'
+        end
       end
       object mnuFileLoadAuxLang: TMenuItem
         Caption = 'Load auxiliary language'
-        Enabled = False
         Hint = 'Translation in the auxiliary language is shown in edit mode, to give you an extra hint for translating. Currently only one auxiliary file is supported.'
-        OnClick = mnuFileLoadAuxLangClick
-      end
-      object mnuFileUnloadAuxLang: TMenuItem
-        Caption = 'Unload auxiliary language'
-        Enabled = False
-        OnClick = mnuFileUnloadAuxLangClick
+        object mnuFileLoadAuxLangRecent: TMenuItem
+          Caption = 'Browse...'
+          OnClick = mnuFileLoadAuxLangRecentClick
+        end
+        object mnuFileLoadAuxUnload: TMenuItem
+          Caption = 'Unload auxiliary language'
+          OnClick = mnuFileLoadAuxUnloadClick
+        end
+        object mnuFileLoadAuxLangSeparator: TMenuItem
+          Caption = '-'
+        end
       end
       object mnuFileSaveTranslation: TMenuItem
         Caption = 'Save translation'
@@ -352,4 +390,4 @@ object frmIniPrevMain: TfrmIniPrevMain
     OnTimer = tmrStatusTimer
     left = 296
   end
-end
+end

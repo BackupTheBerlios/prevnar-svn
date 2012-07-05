@@ -26,26 +26,27 @@ interface
 
 uses
    Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, Menus, Grids,
-  StdCtrls, strutils, LCLProc{,ExtCtrls}{,LCLType};
+  StdCtrls, strutils, LCLProc{,ExtCtrls}{,LCLType},LResources,charencstreams,LConvEncoding;
 
 type
   StringArray1D = array of string ;
   StringArray2D = array of array of string ;
   IntegerArray1D = array of integer;
-  Encoding = (EncodingUndefined=-1,EncodingUTF8=0,EncodingANSI=1,EncodingUTF16_BE=2,EncodingUTF16_LE=3);
   DisplayMode= (DisplayAll=0, DisplayUntranslatedOnly= 1, DisplayFuzzyOnly= 2, DisplayUntranslatedAndFusy= 3, DisplayTranslatedOnly=4);
   //TODO: I tried to use unumeration, but it occured that in Pascal Eum<> Integer, so the final result is odd.
+  UniFile= array [0..3] of string;
 
 //Public functions
 function BooleanToString (aBoolean:Boolean):String;
 function StringToBoolean (aString:String):Boolean ;
-function Split(const AString: string; const Separator: string): StringArray1D ;
+function Split(AString: string; Separator: string): StringArray1D ;
 function Join(const aStringArray:StringArray1D; const Separator: string=''):String;
-function Occurs(const str, separator: string): integer;
+function Occurs(str, separator: string): integer;
 function Mid (AText:string; AStart :Integer; ACount:Integer=-1 ):string;
 function GetBom(StartString: string):Integer;
-function FileGet(FileName: string; StartPosition: integer = 0; StringLenth: integer = 0; ForcedEncoding: integer= ord(EncodingUndefined)): string;
 procedure FilePut(FileName: string; StringToWrite: string; StartPosition: integer=0);
+function ReadUTF8 (FileName:String; ForcedEncoding:TUniStreamTypes=ufUndefined): UniFile;
+function WriteUTF8 (FileName:String; StringToWrite: string; Encoding:TUniStreamTypes=ufUtf8; HasBOM:Boolean=True): string;
 procedure SetOS;
 function UTF8StringReplace(const S, OldPattern, NewPattern: string;  Flags: TReplaceFlags): string;
 function its (AInteger: integer): String;
@@ -65,8 +66,9 @@ const
   DebugLog= 'debuglog.txt';
   SettingsFile='prevnar.ini';
 var
-   Charset: integer = 0;     {0=UTF8; 1=ANSI; 2=UTF16(BE); 3:=UTF16(LE)}
+   Charset: TUniStreamTypes = ufUtf8;     {0=UTF8; 1=ANSI; 2=UTF16(BE); 3:=UTF16(LE)}
    Slash:string = '\'; //  For Dos, Windows and ReactOS= \, for *nix = /
+   HasBom:Boolean=False;
 
    {Vars adjustable trough the settings windows}
    RowSplitter : string = '=';
@@ -77,6 +79,7 @@ var
    IgnoreSections: Boolean= false;
    ConfirmAutotranslate:Integer;
    DebugMode: Boolean= False;
+   RecentStore: Integer= 5;
    {End of adjustable vars}
 
   {Localization strings start here}
@@ -116,7 +119,7 @@ var
   ezPerCent:String;
   ezBOM:string;
   ezNoBOM:string;
-  ezCharsetName: array [0..1{3}] of string; //TODO: To set it to 1..3 when UTF16 support is implemented.
+  ezCharsetName: array [0..5{3}] of string; //TODO: To set it to 1..3 when UTF16 support is implemented.
   ezSelectMainfile: string;
   ezSelectTranslationFile: string;
   ezSelectAuxFile: String;
@@ -216,7 +219,7 @@ begin
 end;
 
 
-//Next 3 functions are from http://forum.lazarus.freepascal.org/, authored by KpjComp
+//Next 4 functions are from http://forum.lazarus.freepascal.org/, authored by KpjComp
 type TUTF8Indexed = record
   charWidths:array of byte;
   rawData:array of DWord;
@@ -367,7 +370,7 @@ end;
 
 
 //I fixed a buggy function which I found somewhere in the internet, instead of writing a new one, I am not quite sure that it works properly always, especially with UTF8
-function Occurs(const str, separator: string): integer; //Counts the occurences of a separator in a string
+function Occurs(str, separator: string): integer; //Counts the occurences of a separator in a string
 var
   i, nSep: integer;
   SeparatorLength: Integer;
@@ -383,7 +386,8 @@ end;
 
 //Returns an array with the parts of "str" separated by "separator"
 //TODO: When occurs returns zero, the Split func will crash
- function Split(const AString: string; const Separator: string): StringArray1D ;
+//TODO: Most probably this function will not work properly with UNICODE strings.
+ function Split(AString: string; Separator: string): StringArray1D ;
 var
   i, n: integer;
   SeparatorLength: Integer;
@@ -457,55 +461,36 @@ begin
   result := MidStr(AText,AStart, StringLength)  ;
 end;
 
- function FileGet(FileName: string; StartPosition: integer = 0; StringLenth: integer = 0; ForcedEncoding: integer= ord(EncodingUndefined)): string;
+
+ function ReadUTF8 (FileName:String; ForcedEncoding:TUniStreamTypes=ufUndefined): UniFile ;
  var
-   ReturnString: String  ;
-   stream: TFileStream;
-   BOM: Integer=0;
- begin
-   if StringLenth = 0 then
-   begin
-     StringLenth := FileSize(FileName);
-   end;
- //  stream := TFileStream.Create(UTF8ToSys(FileName), fmOpenRead or fmShareDenyNone);
-   stream := TFileStream.Create(UTF8ToSys(FileName), fmShareDenyNone );
-   try
-     stream.Seek(StartPosition, soFromBeginning);
-     SetLength(ReturnString, StringLenth);
-     stream.Read(ReturnString[1], StringLenth);
-   finally
-     stream.Free();
-   end;
-   BOM := GetBom(LeftStr(ReturnString,3));
-   if BOM = 1 then //removes the BOM string
-      ReturnString := Mid(ReturnString,4)
-   else if (BOM =2) or (BOM =3) then ReturnString := Mid(ReturnString,3);
+  fCES: TCharEncStream;
+  RetVal: UniFile;
+begin
+  fCES:=TCharEncStream.Create;
+  if ForcedEncoding<>ufUndefined then
+  begin //if
+    fCES.ForceType:= True;
+    fCES.UniStreamType:=ForcedEncoding;
+  end //if
+  else
+    fCES.Reset;
+  fCES.LoadFromFile(UTF8ToSys(FileName));
+  if (fCES.UniStreamType=ufANSI) then
+  begin
+    fCES.ANSIEnc:=LConvEncoding.GetDefaultTextEncoding ;
+  end;
+  RetVal[0]:=fces.UTF8Text;
+  //This is workaround of a bug in charencstreams
+  if (fCES.UniStreamType=ufANSI) and (fces.ANSIEnc='utf8')
+    then RetVal[1]:=IntToStr(ord(ufUtf8))
+    else RetVal[1]:=IntToStr (ord(fCES.UniStreamType));
+  RetVal[2]:=BooleanToString (fCES.HasBOM);
+  RetVal[3]:=fCES.ANSIEnc;
+  Result:=RetVal;
+end;
 
-   if ForcedEncoding = ord(EncodingUndefined) then
-      Charset := BOM // GetBom(LeftStr(ReturnString,3))
-   else
-     Charset:= ord(ForcedEncoding);
- case Charset of
-      ord(EncodingANSI) :  Result := AnsiToUtf8(ReturnString);
-      ord(EncodingUTF8) :  Result := ReturnString;
-      //Still I cannot make UTF16 convertion work
-      ord(EncodingUTF16_BE) :
-                            begin
-                            Result := UTF16ToUTF8(ReturnString) ; //UnicodeToUtf8 (ReturnString);
-                            end;
-      ord(EncodingUTF16_LE) :
-                            begin
-                            Result := UTF16ToUTF8 (ReturnString) ; //UnicodeToUtf8 (ReturnString);
-                            end;
-
- end; //case
-
-   {if Charset = 0 then //UTF16BE and LE are still not implemented
-       Result := AnsiToUtf8(ReturnString)   //ANSI
-   else if
-       Result := ReturnString; //UTF8}
- end;
-
+//Obsolete procedure
  procedure FilePut(FileName: string; StringToWrite: string; StartPosition: integer);
  var
    stream: TFileStream;
@@ -524,6 +509,17 @@ end;
    end;
  end;
 
+function WriteUTF8 (FileName:String; StringToWrite: string; Encoding:TUniStreamTypes=ufUtf8; HasBOM:Boolean=True): string;
+var
+   fCES: TCharEncStream;
+begin
+   fCES:=TCharEncStream.Create;
+   fCES.HaveType:=True;
+   fCES.UniStreamType:= Encoding;
+   fCES.HasBOM:=HasBOM;
+   fCES.UTF8Text:=StringToWrite;
+   fCES.SaveToFile(FileName);
+end;
 
 end.
 

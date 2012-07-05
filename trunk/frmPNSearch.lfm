@@ -1,7 +1,7 @@
 object frmSearch: TfrmSearch
-  Left = 494
+  Left = 569
   Height = 197
-  Top = 406
+  Top = 541
   Width = 386
   BorderStyle = bsDialog
   Caption = 'Search...'
@@ -9,7 +9,7 @@ object frmSearch: TfrmSearch
   ClientWidth = 386
   FormStyle = fsStayOnTop
   OnCreate = FormCreate
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.1'
   object txtSoughtText: TLabeledEdit
     Left = 16
     Height = 21
@@ -96,6 +96,8 @@ object frmSearch: TfrmSearch
     ChildSizing.ShrinkVertical = crsScaleChilds
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 1
+    ClientHeight = 71
+    ClientWidth = 116
     Items.Strings = (
       '&&'
       '_'

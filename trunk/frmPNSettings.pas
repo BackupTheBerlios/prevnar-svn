@@ -25,7 +25,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ExtCtrls, strutils, PNCommons  ;
+  ExtCtrls, Spin, strutils, PNCommons, Menus,charencstreams;
 
 type
 
@@ -37,6 +37,8 @@ type
     chkFillInEmpty: TCheckBox;
     cmdCancel: TButton;
     cboConfirmAutotranslate: TComboBox;
+    speRecent: TSpinEdit;
+    lblRecent: TLabel;
     lblConfirmAutotranslate: TLabel;
     lblSectionOpener: TLabel;
     lblSectionCloser: TLabel;
@@ -66,23 +68,25 @@ procedure SetSettings;
 procedure SaveSettings;
 
 implementation
+uses frmIniPrev;
 
 {$R *.lfm}
 
 { TfrmSettings }
 
-{
-function ComboToArray(aCombo:TComboBox): StringArray1D;
+function AssembleRecent (fMenuItem: array of TMenuItem): String;
 var
-  RetVal: StringArray1D;
   i:integer;
+  RetVal: string= '';
 begin
-  SetLength(RetVal,aCombo.Items.Count-1);
-  for i:= 0 to aCombo.Items.Count-1 do
-    RetVal[i]:=aCombo.Items[i];
-  Result:=RetVal ;
+   for i:=0 to frmSettings.speRecent.Value-1 do
+     begin //for i
+       if fMenuItem[i].Visible = True
+         then RetVal:=RetVal + fMenuItem[i].Caption+'+'
+         else break;
+     end; //next i
+   Result:=RetVal;
 end;
-}
 
 procedure SaveSettings;
 var
@@ -102,13 +106,51 @@ begin
     +'ConfirmAutotranslate=' + its(ConfirmAutotranslate)+CrLf
     +'IgnoreSections=' + BooleanToString (IgnoreSections)+CrLf
     +'DebugMode='+ BooleanToString(DebugMode)+ CrLf
+    +'RecentStore=' + IntToStr (speRecent.Value)+ CrLf
+    +'RecentMain='+  AssembleRecent(frmIniPrev.mnuFileRecentMain)+ CrLf
+    +'RecentTrans='+  AssembleRecent(frmIniPrev.mnuFileRecentTrans)+ CrLf
+    +'RecentAux='+  AssembleRecent(frmIniPrev.mnuFileRecentAux)+ CrLf
     + CrLf ; //CrLf is needed, to assure that the value will be properly read, if the settings file cannot be deleted.
  end;  //with
  try
    DeleteFile (AppendPathDelim(ProgramDirectory) + SettingsFile);
  finally
  end;
- FilePut (AppendPathDelim(ProgramDirectory) + SettingsFile,SettingsContents ) ;
+ //TODO: WriteUTF8 does not work on the next line.
+ FilePut  (AppendPathDelim(ProgramDirectory) + SettingsFile,SettingsContents) ;
+end;
+
+procedure CreateRecentMenu (CreationItem: array of TMenuItem; CreationLocation: TMenuItem; Count: Integer);
+var
+  i:integer;
+begin
+ for i:=0 to Count-1 do
+ begin
+     CreationItem[i]:=TMenuItem.Create (CreationLocation);
+     CreationItem[i].Caption:='';
+     CreationItem[i].Tag:=i;
+     CreationItem[i].OnClick:=@frmIniPrevMain.mnuFileRecentMainClick;
+     CreationLocation.Add (CreationItem[i]);
+     CreationItem[i].Visible:=False;
+ end;
+end;
+
+procedure ExtractRecent (fMenuItem: array of TMenuItem; fRecentLine: String);
+var
+  RecentMain: array of String;
+  i: integer;
+  Loops: integer;
+begin
+  RecentMain:= Split(fRecentLine,#43);
+  if (Length(RecentMain)<=14) then Loops:= (Length(RecentMain)-1) else Loops:=14;
+  with frmIniPrevMain do
+  begin
+    for i:=0 to Loops do
+      begin //for i
+         fMenuItem[i].Caption:=RecentMain[i];
+         fMenuItem[i].Visible:=True;
+      end; //next i
+   end;//with
 end;
 
 procedure LoadSettings;
@@ -117,31 +159,62 @@ var
  i: integer;
  Key:String;
  Value:String;
+ FileContents:UniFile;
 begin
  if FileExistsUTF8 (AppendPathDelim(ProgramDirectory) + SettingsFile)  then
  begin
  try
-   SettingsContents:= Split(FileGet (AppendPathDelim(ProgramDirectory) + SettingsFile,0,0,ord(EncodingUTF8)),CrLf);
+   FileContents:=ReadUTF8(AppendPathDelim(ProgramDirectory) + SettingsFile);
+   with frmIniPrevMain do
+   begin //with
+     for i:=0 to frmSettings.speRecent.Value-1 do
+     begin  //for i
+       mnuFileRecentMain[i]:=TMenuItem.Create (mnuFileOpenMain);
+       mnuFileRecentMain[i].Caption:='';
+       mnuFileRecentMain[i].Tag:=i;
+       mnuFileRecentMain[i].OnClick:=@mnuFileRecentMainClick;
+       mnuFileOpenMain.Add (mnuFileRecentMain[i]);
+       mnuFileRecentMain[i].Visible:=False;
+
+       mnuFileRecentTrans[i]:=TMenuItem.Create (mnuFileOpenTrans);
+       mnuFileRecentTrans[i].Caption:='';
+       mnuFileRecentTrans[i].Tag:=i;
+       mnuFileRecentTrans[i].OnClick:=@mnuFileRecentTransClick;
+       mnuFileOpenTrans.Add (mnuFileRecentTrans[i]);
+       mnuFileRecentTrans[i].Visible:=False;
+
+       mnuFileRecentAux[i]:=TMenuItem.Create (mnuFileLoadAuxLang);
+       mnuFileRecentAux[i].Caption:='';
+       mnuFileRecentAux[i].Tag:=i;
+       mnuFileRecentAux[i].OnClick:=@mnuFileRecentAuxClick;
+       mnuFileLoadAuxLang.Add (mnuFileRecentAux[i]);
+       mnuFileRecentAux[i].Visible:=False;
+     end; //next i
+   end; //with
+   SettingsContents:=Split(FileContents [0],CrLf);
    for i:= 0 to Length(SettingsContents)-1 do
    begin  //for
      Key:=LeftStr (SettingsContents[i],PosEx ('=',SettingsContents[i])-1) ;
-     Value:= Mid (SettingsContents[i],Length(key+'=')+1,100);;
+     Value:= Mid (SettingsContents[i],Length(key+'=')+1); //TODO- this 100 shall be removed somehow
      //WARNING: If the compiler returns an error on the next line, it means that your Lazarus is too old.
      case key of
-       'RowSplitter': RowSplitter := Value; //Mid (SettingsContents[i],Length(key+'=')+1,100);
-       'SectionOpener': SectionOpener := Value; //Mid (SettingsContents[i],Length(key+'=')+1,100);
-       'SectionCloser': SectionCloser := Value; //Mid (SettingsContents[i],Length(key+'=')+1,100);
+       'RowSplitter': RowSplitter := Value;
+       'SectionOpener': SectionOpener := Value;
+       'SectionCloser': SectionCloser := Value;
        'FillBlanks': FillBlanks := StringToBoolean  (Mid (SettingsContents[i],Length(key+'=')+1,100));
        'IgnoreLines': IgnoreLines:= Split (mid(SettingsContents[i],Length(key+'=')+1,100),'\n');
        'ConfirmAutotranslate': ConfirmAutotranslate:= StrToInt (Value);
        'IgnoreSections': IgnoreSections:= StringToBoolean(Value);
        'DebugMode': DebugMode:=StringToBoolean(Value);
-       //except
+       'RecentStore': RecentStore:= StrToInt(Value);
+       'RecentMain':ExtractRecent (mnuFileRecentMain, Value );
+       'RecentTrans':ExtractRecent (mnuFileRecentTrans,Value);
+       'RecentAux':ExtractRecent (mnuFileRecentAux,Value);
      end;  //case
    end;  //for i
    except
    end; //except
-// finally
+ // finally
  end
 else
 begin
@@ -156,10 +229,9 @@ IgnoreLines[2]:=Apostrophy;
 ConfirmAutotranslate:= 0;
 IgnoreSections:= False;
 DebugMode:=False;
+RecentStore:=5;
 SaveSettings;
 end;
-
- //end; //try
  SetSettings;
 end;
 
@@ -173,6 +245,7 @@ begin
    FillBlanks:= chkFillInEmpty.Checked;
    IgnoreLines:= Split(txtIgnoreStarts.Lines.Text ,CrLf);
    ConfirmAutotranslate:=cboConfirmAutotranslate.ItemIndex;
+   RecentStore:=speRecent.Value;
   // IgnoreSections:=chkFillInEmpty.Checked;
  end; //with
 end;
@@ -188,12 +261,13 @@ begin
     txtIgnoreStarts.Lines.Text:= Join(IgnoreLines,CrLf);
     cboConfirmAutotranslate.ItemIndex:=ConfirmAutotranslate;
     chkIgnoreSections.Checked:=IgnoreSections;
+    speRecent.Value:=RecentStore;
   end; //with
 end;
 
 procedure TfrmSettings.FormCreate(Sender: TObject);
 begin
-  LoadSettings ;
+  LoadSettings;
 end;
 
 procedure TfrmSettings.cmdOkayClick(Sender: TObject);

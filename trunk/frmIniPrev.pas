@@ -24,7 +24,7 @@ interface
 
 uses
   {Classes,} SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, Menus, Grids,
-  StdCtrls, strutils, LCLProc, ExtCtrls, {LCLType,} Classes
+  StdCtrls, strutils, LCLProc, ExtCtrls, LCLType, Classes, charencstreams
   , frmPNSettings, frmPNSearch, frmPNGoto, pnCommons, frmPNAbout;
 
 
@@ -35,6 +35,8 @@ type
   TfrmIniPrevMain = class(TForm)
     cmdOkay: TButton;
     cmdCancel: TButton;
+    lblAnsiCPMain: TLabel;
+    lblAnsiCPTranslation: TLabel;
     lblBOMTranslationWrite: TLabel;
     lblCharsetTranslationWrite: TLabel;
     lblArrow: TLabel;
@@ -46,7 +48,14 @@ type
     lblCharsetDefault: TLabel;
     lblStatus: TLabel;
     lblNewLineStringTranslation: TLabel;
-    mnuFileUnloadAuxLang: TMenuItem;
+    mnuFileLoadAuxUnload: TMenuItem;
+    mnuFileLoadAuxLangRecent: TMenuItem;
+    mnuFileLoadAuxLangSeparator: TMenuItem;
+    mnuFileOpenTrans: TMenuItem;
+    mnuFileOpenTransSeparator: TMenuItem;
+    mnuFileOpenTransBrowse: TMenuItem;
+    mnuFileOpenMainBrowse: TMenuItem;
+    mnuFileMainSeparator: TMenuItem;
     mnuMiscAbout: TMenuItem;
     mnuFileLoadAuxLang: TMenuItem;
     mnuViewShowTranslated: TMenuItem;
@@ -73,7 +82,6 @@ type
     mmMain: TMainMenu;
     mnuEdit: TMenuItem;
     mnuFileOpenMain: TMenuItem;
-    mnuFileTranslateFile: TMenuItem;
     mnuFile: TMenuItem;
     odSingleFile: TOpenDialog;
     sgStringList: TStringGrid;
@@ -85,11 +93,18 @@ type
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormResize(Sender: TObject);
+    procedure lblAnsiCPTranslationClick(Sender: TObject);
+    procedure lblBOMTranslationClick(Sender: TObject);
     procedure lblBOMTranslationWriteClick(Sender: TObject);
     procedure lblCharsetDefaultClick(Sender: TObject);
     procedure lblCharsetTranslationClick(Sender: TObject);
     procedure lblCharsetTranslationWriteClick(Sender: TObject);
+    procedure mnuFileLoadAuxLangRecentClick(Sender: TObject);
+    procedure mnuFileLoadAuxUnloadClick(Sender: TObject);
+    procedure mnuFileOpenMainBrowseClick(Sender: TObject);
     procedure mnuEditCopyToTransClick(Sender: TObject);
+    procedure mnuFileOpenTransBrowseClick(Sender: TObject);
+    procedure mnuFileOpenTransClick(Sender: TObject);
     procedure mnuFileUnloadAuxLangClick(Sender: TObject);
     procedure mnuMiscAddNewStringsClick(Sender: TObject);
     procedure mnuEditFindNextClick(Sender: TObject);
@@ -102,23 +117,29 @@ type
     procedure mnuFileOpenMainClick(Sender: TObject);
     procedure mnuFileSaveAsClick(Sender: TObject);
     procedure mnuFileSaveTranslationClick(Sender: TObject);
-    procedure mnuFileTranslateFileClick(Sender: TObject);
+    procedure mnuFileTransFileClick(Sender: TObject);
     procedure mnuMiscAboutClick(Sender: TObject);
     procedure mnuMiscSettingsClick(Sender: TObject);
-    procedure mnuFileLoadAuxLangClick(Sender: TObject);
     procedure mnuViewShowTranslatedClick(Sender: TObject);
     procedure sgStringListDblClick(Sender: TObject);
     procedure sgStringListKeyPress(Sender: TObject; var Key: char);
     procedure sgStringListPrepareCanvas(sender: TObject; aCol, aRow: Integer;
       aState: TGridDrawState);
     procedure tmrStatusTimer(Sender: TObject);
-    procedure txtMTranslationKeyPress(Sender: TObject; var Key: char);
+    procedure txtMTranslationKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure mnuFileRecentMainClick (Sender: TObject);
+    procedure mnuFileRecentTransClick (Sender: TObject);
+    procedure mnuFileRecentAuxClick (Sender: TObject);
   private
     { private declarations }
   public
     { public declarations }
   end;
-
+var
+  mnuFileRecentMain:array [0..14] of TMenuItem;
+  mnuFileRecentTrans:array [0..14] of TMenuItem;
+  mnuFileRecentAux:array [0..14] of TMenuItem;
 
 const
   DummyConst=True ; //Lazarus does not want to compile, if no constant is declared.
@@ -126,6 +147,7 @@ const
 var
   SgSlFG: array of TColor;
   SgSlBG: array of TColor;
+
 
   frmIniPrevMain: TfrmIniPrevMain;
   //The latter variables will be adjustable through the settings, when implemented
@@ -140,10 +162,11 @@ var
   AuxLoaded: Boolean = False;
   SearchString:String;
   SearchCaseSensitive: Boolean = False;
-  CharsetMain: integer;
-  CharsetTranslation: integer;
-  CharsetTranslationWrite: Integer;
-  FilenameDefault: string;
+  CharsetMain: TUniStreamTypes;
+  CharsetTranslation: TUniStreamTypes;
+  //CharsetTranslationWrite: Integer;
+  CharsetTranslationWrite: TUniStreamTypes;
+  FilenameMain: string;
   FilenameTranslation: string;
   TranslationStrings: array of array of String;
   AuxStrings: array of array of String;
@@ -166,6 +189,7 @@ implementation
 {$R *.lfm}
 
 { TfrmIniPrevMain }
+
 
 //Detects the new line string (CrLf, Cr or Lf)
 function NewLineString(Str:string): string;
@@ -330,7 +354,6 @@ case KeyNumeric of
   Result:=RetVal;
 end;
 
-
 procedure LocalizeSettings;
 begin
   with frmSettings do
@@ -375,8 +398,10 @@ begin
   ezNoBOM:='No BOM';
   ezCharsetName[0]:='UTF8';
   ezCharsetName[1]:='ANSI';
-// ezCharsetName[2]:='UTF16(BE)'; //Charset still not supported
-// ezCharsetName[3]:='UTF16(LE)'; //Charset still not supported
+  ezCharsetName[2]:='UTF16(BE)';
+  ezCharsetName[3]:='UTF16(LE)';
+  ezCharsetName[4]:='UTF32(BE)';
+  ezCharsetName[5]:='UTF32(LE)';
   ezSelectMainfile:='Select main file';
   ezSelectTranslationFile:= 'Select translation file';
   ezSelectAuxFile:= 'Select auxiliary file';
@@ -428,9 +453,11 @@ begin //with
   lblNewLineStringTranslation.Top:= TopTranslation;
   lblStatus.top:= TopDefault;
   lblStatusSecondary.top:=TopTranslation;
-  lblCharsetDefault.Top:=TopDefault ;
-  lblCharsetTranslation.Top:=TopTranslation ;
-  lblCharsetTranslationWrite.Top:=TopTranslation ;
+  lblCharsetDefault.Top:=TopDefault;
+  lblAnsiCPMain.Top:=TopDefault;
+  lblCharsetTranslation.Top:=TopTranslation;
+  lblCharsetTranslationWrite.Top:=TopTranslation;
+  lblAnsiCPTranslation.Top:=TopTranslation;
   lblBOMDefault.top:=TopDefault ;
   lblBOMTranslation.top:=TopTranslation ;
   lblBOMTranslationWrite.top:=TopTranslation ;
@@ -478,11 +505,104 @@ begin
   }
 end;
 
-procedure OpenMainFile (FileName: string=''; ForcedCharset:integer= ord(EncodingUndefined); CleanTable:Boolean=True);
+function ShiftCharset(InputCharset: TUniStreamTypes): TUniStreamTypes;
+var
+  RetVal: TUniStreamTypes;
+begin
+  RetVal:= InputCharset;
+     if ord(InputCharset) < Length(ezCharsetName)-1 then ord(RetVal):= (ord(InputCharset)) + 1 else ord(RetVal):=0;
+  Result:= RetVal ;
+end;
+
+procedure UpdateRecent(MenuItem: array of TMenuItem; FileName: string);
+var
+  i:integer;
+  UpCount:integer;
+begin
+if Length(FileName)>0 then
+begin
+  UpCount:=14;
+  for i:=0 to 14 do //Check if the item is already in the list and finds its location
+  begin //for i
+     if (MenuItem[i].Visible=True) then
+       begin //if visible
+         if CompareStr(MenuItem[i].Caption,FileName)=0 then
+         begin
+           UpCount:= i;
+           break;
+         end;
+        end //if visible
+       else
+       begin //if not visible
+         UpCount:=i;
+         break;
+       end; //end if not visible
+  end; //for i
+
+  if UpCount=0 then
+  begin //if
+  MenuItem[0].Caption:=FileName;
+  MenuItem[0].Visible:=True;
+  end //if
+  else
+  begin //else
+    for i:=UpCount downto 1 do
+    begin //for
+      if MenuItem[i-1].Visible= True then
+        begin //if
+          MenuItem[i].Visible:=True;
+          MenuItem[i].Caption:= MenuItem[i-1].Caption;
+       end; //if
+    end;  //next i
+       MenuItem[0].Caption:=FileName;
+  end;//else
+end;
+end;
+
+
+{procedure UpdateRecent(MenuItem: array of TMenuItem; NewFile: string);
+var
+  i:integer;
+  UpCount:integer;
+begin
+if Length(NewFile)>0 then
+begin
+  UpCount:=14;
+  for i:=0 to 14 do //Check if the item is already in the list and finds its location
+  begin //for i
+     if (mnuFileRecentMain[i].Visible=True) then
+       begin //if visible
+         if CompareStr(mnuFileRecentMain[i].Caption,NewFile)=0 then
+         begin
+           UpCount:= i;
+           break;
+         end;
+        end //if visible
+       else
+       begin //if not visible
+         UpCount:=i;
+         break;
+       end; //end if not visible
+  end; //for i
+
+  for i:=UpCount downto 1 do
+    begin //for
+      if mnuFileRecentMain[i-1].Visible= True then
+      begin //if
+        mnuFileRecentMain[i].Visible:=True;
+        mnuFileRecentMain[i].Caption:= mnuFileRecentMain[i-1].Caption;
+      end; //if
+    end;  //next i
+  mnuFileRecentMain[0].Caption:= NewFile;
+  end;//if
+end;  }
+
+procedure OpenMainFile (FileName: string=''; ForcedCharset:TUniStreamTypes=ufUndefined; CleanTable:Boolean=True);
 const
   TF= true;
 var
-  DefaultFileContents: string;
+  FileContents: UniFile;
+  MainFileContents: string;
   MainStrings: StringArray1D;
   MainLine: string;
   NewLine: string;
@@ -498,16 +618,32 @@ begin
     odSingleFile.Title:=ezSelectMainFile;
     odSingleFile.Filter:= (ezLanguageFiles +  '(*.lng)|*.lng|' + ezTextFiles +'(*.txt)|*.txt|'  + ezAllFiles +'(*.*)|*.*|');
       if odSingleFile.Execute = false then exit;
-      FilenameDefault:= odSingleFile.FileName;
-      FileName:=FilenameDefault  ;
+      FileName:= odSingleFile.FileName;
     end;
-    DefaultFileContents:= FileGet(FileName, 0,0, ForcedCharset );
-    if Charset = 0 then lblBOMDefault.Caption:= ezNoBOM else lblBOMDefault.Caption:= ezBOM;
-    lblCharsetDefault.Caption:= ezCharsetName[Charset];
-    CharsetMain:=Charset;
-    NewLine:= NewLineString(DefaultFileContents);
+    FilenameMain:=FileName;
+    FileContents:= ReadUTF8(FileName,ForcedCharset);
+    MainFileContents:=FileContents[0];
+    ord(CharsetMain):=StrToInt(FileContents[1]);
+
+    if StringToBoolean (FileContents[2]) = True then lblBOMDefault.Caption:= ezBOM else lblBOMDefault.Caption:= ezNoBOM;
+
+    //TODO- The ANSI codepage shall be selectable via a popup menu.
+    if CharsetMain=ufANSI then
+      begin
+        lblAnsiCPMain.Visible:=True;
+        lblAnsiCPMain.Caption:=FileContents[3]; //ANSI codepage- CP1251, CP1253, etc.
+      end
+      else
+        lblAnsiCPMain.Visible:=False;
+
+    lblCharsetDefault.Caption:= ezCharsetName[ord(CharsetMain)];
+    NewLine:= NewLineString(MainFileContents);
     lblNewLineStringDefault.Caption:= NewLineToText(NewLine ) ;
-    MainStrings:= Split (DefaultFileContents, NewLine );
+    MainStrings:= Split (MainFileContents, NewLine );
+
+    lblCharsetDefault.Visible:=TF;
+    lblCharsetDefault.Enabled:=TF;
+
     if CleanTable = True then DeleteStringGridRows(sgStringList);
     RowNumber:=1;
     for i:= 0 to (Length (MainStrings )-1) do
@@ -528,68 +664,94 @@ begin
         RowNumber:=RowNumber+1;
        end; //if
     end; //for i
-    if sgStringList.RowCount= 1 then
+    {if {sgStringList.RowCount}RowNumber<= 1 then
      begin
           ShowMessage (ezNoStringsFoundMakeSureThatYouHaveSetTheProperRowSplitterInTheSettinsAndThatYouHaveOpenedAProperFile);
           exit;
-     end;
+     end;}
   SetLength(SgSlBG,sgStringList.RowCount);
-  for i:=0 to sgStringList.RowCount-1 do SgSlBG[i]:= clWhite ;
+  for i:=0 to sgStringList.RowCount-1 do SgSlBG[i]:= clWhite;
 
   lblStatus.Caption:= ezTotalStrings + IntToStr ( sgStringList.RowCount -1);
   mnuFileLoadAuxLang.Enabled:=TF;
-  mnuFileTranslateFile.Enabled:=TF;
-  mnuFileTranslateFile.Enabled:=TF ;
+  mnuFileOpenTrans.Enabled:=TF;
   lblNewLineStringDefault.Visible:=TF;
   lblBOMDefault.Visible:=TF;
-  lblCharsetDefault.Visible:=TF;
-  lblCharsetDefault.Enabled:=TF;
   lblStatus.Visible:=TF;
   mnuEditFind.Enabled:=TF ;
+  UpdateRecent (mnuFileRecentMain, FileName);
   end; //with
 end;
 
 procedure TfrmIniPrevMain.mnuFileOpenMainClick(Sender: TObject);
 begin
-     OpenMainFile('',ord(EncodingUndefined),True);
+     if TMenuItem(Sender).tag <> 0 then  ShowMessage (its(TMenuItem (Sender).Tag)) ;
 end;
 
+procedure TfrmIniPrevMain.mnuFileRecentMainClick  (Sender: TObject);
+begin
+   OpenMainFile(mnuFileRecentMain[TMenuItem (Sender).Tag].Caption);
+end;
+
+
+procedure TfrmIniPrevMain.mnuFileOpenMainBrowseClick(Sender: TObject);
+begin
+   OpenMainFile('',ufUndefined,True);
+end;
+
+procedure TfrmIniPrevMain.lblCharsetDefaultClick(Sender: TObject);
+var
+  i:integer;
+begin
+  CharsetMain:= ShiftCharset(CharsetMain);
+  lblCharsetDefault.Caption:= ezCharsetName[ord(CharsetMain)];
+  lblCharsetDefault.Enabled:=False;
+  for i:= 1 to frmIniPrevMain.sgStringList.RowCount -1 do
+  begin //for i
+    frmIniPrevMain.sgStringList.Cells [colMain,i]:='';
+    frmIniPrevMain.sgStringList.Cells [colKey,i]:='';
+    frmIniPrevMain.sgStringList.Cells [colSection,i]:='';
+  end; //next i
+  if CharsetMain=ufANSI
+     then lblAnsiCPMain.Visible:=True
+     else lblAnsiCPMain.Visible:= False;
+  try
+   OpenMainFile(FilenameMain,CharsetMain, false );
+   except
+   end;
+end;
+
+
 //AuxStrings is two dimentional, so in the future it might support more than one aux file
-procedure OpenAuxFile (FileName: string=''; ForcedCharset:integer= ord(EncodingUndefined); CleanTable:Boolean=True);
+procedure OpenAuxFile (FileName: string=''; ForcedCharset:TUniStreamTypes= ufUndefined);
 const
   TF= true;
 var
+  AuxFileContents: UniFile;
   FileContents: string;
   ContentStrings: StringArray1D;
   MainLine: string;
   NewLine: string;
   i,j: integer;
   Key: String;
-  RowNumber: integer;
   SplitterLocation:integer;
   SectionName: string= '';
 begin
   with frmIniPrevMain do
   begin //with
-  if FileName ='' then
-   try
+  try
+    if FileName='' then
     begin
     odSingleFile.Title:=ezSelectAuxFile;
     odSingleFile.Filter:= (ezLanguageFiles +  '(*.lng)|*.lng|' + ezTextFiles +'(*.txt)|*.txt|'  + ezAllFiles +'(*.*)|*.*|');
       if odSingleFile.Execute = false then exit;
-      FilenameDefault:= odSingleFile.FileName;
-      FileName:=FilenameDefault  ;
+      FileName:= odSingleFile.FileName;
     end;
-    FileContents:= FileGet(FileName, 0,0);
-    if Charset = 0 then lblBOMDefault.Caption:= ezNoBOM else lblBOMDefault.Caption:= ezBOM;
-    lblCharsetDefault.Caption:= ezCharsetName[Charset];
-    CharsetMain:=Charset;
+    AuxFileContents:= ReadUTF8(FileName) ;// FileGet(FileName, 0,0);
+    FileContents:=AuxFileContents[0];
     NewLine:= NewLineString(FileContents);
-    lblNewLineStringDefault.Caption:= NewLineToText(NewLine ) ;
-    ContentStrings:= Split (FileContents, NewLine );
+    ContentStrings:=Split (FileContents, NewLine );
     SetLength(AuxStrings,sgStringList.RowCount+1,1);
-    //RowNumber:=1;
-    DebugLine ('помощен');
   for i:=0 to Length(ContentStrings)-1 do
   begin //for i
     if CompareText(LeftStr (MainLine,Length(SectionCloser)), SectionOpener)= 0 then
@@ -607,25 +769,26 @@ begin
               begin //if
                 SplitterLocation:= PosEx(RowSplitter,ContentStrings[i]);
                 AuxStrings [j,0]:=  Mid (ContentStrings[i],SplitterLocation+1, Length(ContentStrings[i])-SplitterLocation ) ; //The KEY value is not usable, since there might be equal keys in different sections
-                DebugLine (its(i) +'='+ AuxStrings [j,0]);
-                break;
+                DebugLine (its(i)+'='+ AuxStrings [j,0]);
+                Break;
               end  //if
            end //for j    }
       end //if
   end; //for i
   AuxStrings[sgStringList.RowCount,0]:=RemovePath(FileName);
   AuxLoaded:=True;
-  mnuFileUnloadAuxLang.Enabled:=True;
+  mnuFileLoadAuxUnload.Enabled:=True;
+  UpdateRecent(mnuFileRecentAux,FileName);
   except
     QuestionDlg(ezError,LocalizeRowMultiple(ezAnErrorOccuredWhenTryingToLoadAuxiliaryFile,FileName),
       mtCustom, [mrOK,ezOkay],'');
-  end;
-  end; //with
+  end; //try
+end; //with
 end;
 
-procedure TfrmIniPrevMain.mnuFileLoadAuxLangClick(Sender: TObject);
+procedure TfrmIniPrevMain.mnuFileRecentAuxClick  (Sender: TObject);
 begin
-     OpenAuxFile();
+   OpenAuxFile (mnuFileRecentAux[TMenuItem(Sender).Tag].Caption);
 end;
 
 procedure InsertX (var AArray: StringArray2D; const Index: Cardinal; const Value: StringArray1D);
@@ -680,15 +843,9 @@ begin //if
 with frmIniPrevMain do
 begin //with
   SaveInProgress:=True;
-  if (BOMTranslation=True) and (CharsetTranslationWrite<> ord(EncodingANSI)) then
-     case CharsetTranslationWrite of
-     ord(EncodingUTF8) :  FullStrings:= BOMUTF8 ;
-     ord(EncodingUTF16_BE) :  FullStrings:= BOMUTF16BE ;
-     ord(EncodingUTF16_LE) :  FullStrings:= BOMUTF16LE
-     end;  //case
   for i:= 0 to Length(TranslationStrings) -1 do
   begin //for
-      if CompareText(RightStr(TranslationStrings [i,0],1), RowSplitter) = 0 then //Checks if the row is emty
+      if CompareText(RightStr(TranslationStrings [i,0],1), RowSplitter) = 0 then //Checks if the row is empty
       begin //if
         if frmSettings.chkFillInEmpty.Checked  = True
         then FullStrings:= FullStrings+ sgStringList.cells[colKey,StrToInt (TranslationStrings[i,1])]+ RowSplitter+  sgStringList.cells[colMain,strtoint(TranslationStrings[i,1])] +NewLineTranslation;
@@ -702,10 +859,7 @@ begin //with
     sdSingleFile.Filter:= (ezLanguageFiles +  '(*.lng)|*.lng|' + ezTextFiles +'(*.txt)|*.txt|'  + ezAllFiles +'(*.*)|*.*|');
     if sdSingleFile.Execute = true then FilenameTranslation:= sdSingleFile.FileName ;
   end;
-  if CharsetTranslationWrite=ord(EncodingANSI) then FullStrings:=Utf8ToAnsi(FullStrings); //TODO: Some lines remain unconverted
-  //next line does not work
-  //if (CharsetTranslationWrite=ord(EncodingUTF16_BE)) or (CharsetTranslationWrite=ord(EncodingUTF16_LE)) then FullStrings:=UTF8ToUTF16(FullStrings);
-  FilePut (FilenameTranslation,FullStrings,0);
+  WriteUTF8(FilenameTranslation,FullStrings,CharsetTranslationWrite,BOMTranslation);
   frmIniPrevMain.Caption:= LeftStr (frmIniPrevMain.Caption, Length(frmIniPrevMain.Caption) -1) ;
   mnuFileSaveTranslation.Enabled:= false;
   Unsaved:= false;
@@ -796,7 +950,6 @@ AutotranslateIgnoreChars[4]:='!';
   begin //with
     for i:= 1 to sgStringList.RowCount -1 do
     begin//for
-      //if (CompareText(RemoveIgnoreChars(sgStringList.Cells[colMain,i],AutotranslateIgnoreChars),RemoveIgnoreChars(SoughtString,AutotranslateIgnoreChars))=0)
      if (CompareText(sgStringList.Cells[colMain,i],SoughtString)=0)
           and (Length (sgStringList.Cells[colTranslation,i])>0)then
        begin //if
@@ -810,7 +963,7 @@ end;
 
 procedure ShowHideItems(ListMode: DisplayMode=DisplayAll);
 var
-  i,j:integer;
+  i:integer;
 begin
   with frmIniPrevMain do
   begin //with
@@ -829,10 +982,11 @@ begin
 end; //with
 end;
 
-procedure OpenTranslationFile (FileName: string=''; ForcedCharset:integer= ord(EncodingUndefined));
+procedure OpenTranslationFile (FileName: string=''; ForcedCharset:TUniStreamTypes= ufUndefined);
 const
   TF= true;
 var
+  FileContents:UniFile;
   TranslationFileContents: string;
   i,j: integer;
   CurrentNewLine:integer=0;
@@ -855,31 +1009,29 @@ begin //with
     FilenameTranslation:= odSingleFile.FileName;
     FileName:= FilenameTranslation;
   end;//if
-  TranslationFileContents:= FileGet(FileName, 0,0, ForcedCharset );
-  FileClose(FileOpen(FileName,fmShareDenyNone ));
-  if ForcedCharset=ord(EncodingUndefined) then
-     if (Charset = ord(EncodingANSI)) then
-       begin //if
-           lblBOMTranslation.Caption:= ezNoBOM;
-           lblBOMTranslationWrite.Caption:= ezNoBOM;
-           BOMTranslation:= False;
-       end //if
-       else
-       begin  //else
-         lblBOMTranslation.Caption:= ezBOM;
-         BOMTranslation:= True;
-         {if Charset= ord(EncodingUTF8) then
-            TranslationFileContents:= mid(TranslationFileContents, 4)
-         else
-            if (Charset= ord(EncodingUTF16_BE)) or (Charset= ord(EncodingUTF16_LE)) then
-              TranslationFileContents:= mid(TranslationFileContents, 3);}
-       end; //else
-  lblCharsetTranslation.Caption:= ezCharsetName[Charset];
-  CharsetTranslation:=Charset;
-  CharsetTranslationWrite:=Charset;
+  FileContents:= ReadUTF8 (FileName,ForcedCharset);
+  TranslationFileContents:=FileContents[0];
+  ord(CharsetTranslation):=ord(StrToInt(FileContents[1]));
+
+  //TODO- The ANSI codepage shall be selectable via a popup menu.
+  if CharsetTranslation=ufANSI then
+  begin
+    lblAnsiCPTranslation.Visible:=True;
+    lblAnsiCPTranslation.Caption:=FileContents[3];
+  end
+  else
+    lblAnsiCPTranslation.Visible:=False;
+
+  lblCharsetTranslation.Caption:= ezCharsetName[ord(CharsetTranslation)];
+  CharsetTranslationWrite:=CharsetTranslation;
+  lblCharsetTranslationWrite.Caption:= ezCharsetName[ord(CharsetTranslationWrite)];
   NewLine:= NewLineString(TranslationFileContents);
   NewLineTranslation:=  NewLine;
-  lblNewLineStringTranslation.Caption:= NewLineToText(NewLine ) ;
+  BOMTranslation:= StringToBoolean (FileContents[2]);
+  if BOMTranslation=True then lblBOMTranslation.Caption:= ezBOM else lblBOMTranslation.Caption:= ezNoBOM;
+  lblBOMTranslationWrite.Caption:= lblBOMTranslation.Caption;
+  lblNewLineStringTranslation.Visible:=True;
+  lblNewLineStringTranslation.Caption:= NewLineToText(NewLine) ;
   SetLength(TranslationStrings,Occurs(TranslationFileContents,NewLine),2);
   CurrentNewLine:=1;
   for i:=1 to sgStringList.RowCount - 1 do sgStringList.Cells[colTranslation,i]:=''; //Cleans translations column
@@ -938,7 +1090,7 @@ begin //with
   end; //for i
   DebugArray2D (TranslationStrings);
   PrintStatus();
-  mnuFileTranslateFile.Enabled:=TF ;
+//  mnuFileOpenTrans.Enabled:=TF ;
   lblNewLineStringTranslation.Visible:=TF;
   lblBOMTranslation.Visible:=TF;
   lblBOMTranslationWrite.Visible:=TF;
@@ -950,15 +1102,41 @@ begin //with
   mnuEditGoToLine.Enabled:=TF  ;
   mnuFileSaveAs.Enabled:=TF;
   sgStringList.Enabled:=TF;
-  frmIniPrevMain.Caption:= ezIniPrev + LocalizeRowMultiple (ezFileToFile,RemovePath(FilenameDefault),RemovePath(FilenameTranslation));
+  //TODO- does not update when loading a recent file.
+  frmIniPrevMain.Caption:= ezIniPrev + LocalizeRowMultiple (ezFileToFile,RemovePath(FilenameMain),RemovePath(FileName));
   lblStatusSecondary.Caption:= ezNewLines + ezSpace+ its(NewLinesFound) + '; ' + ezAutoFilledLines + ezSpace + its(AutoFilledLines);
   tmrStatus.Enabled:=True ;
+  UpdateRecent(mnuFileRecentTrans,FileName);
   end; //with
 end;
 
-procedure TfrmIniPrevMain.mnuFileTranslateFileClick(Sender: TObject);
+procedure TfrmIniPrevMain.mnuFileTransFileClick(Sender: TObject);
 begin
-     OpenTranslationFile();
+   OpenTranslationFile();
+end;
+
+procedure TfrmIniPrevMain.mnuFileRecentTransClick  (Sender: TObject);
+begin
+   FilenameTranslation:=mnuFileRecentTrans [TMenuItem (Sender).Tag].Caption;
+   OpenTranslationFile (FilenameTranslation);
+end;
+
+procedure TfrmIniPrevMain.lblCharsetTranslationClick(Sender: TObject);
+  var
+    i:integer;
+begin
+  lblCharsetDefault.Enabled:=False;
+  if Unsaved=True then
+     if QuestionDlg   (ezWarning, ezDoYouWantToOpenTheTranslationFileWithANewEncoding + crlf +ezTheChangesInYourTranslationAreNotSavedIfYouPressYesTheyWillBeLost,
+        mtCustom, [mrYes,ezYes,mrNo,ezNo],'') = mrNo then exit;
+  if CharsetTranslation=ufANSI
+     then lblAnsiCPTranslation.Visible:=True
+     else lblAnsiCPTranslation.Visible:=False;
+  for i:= 1 to frmIniPrevMain.sgStringList.RowCount -1 do frmIniPrevMain.sgStringList.Cells [colTranslation,i]:='';
+  CharsetTranslation:= ShiftCharset(CharsetTranslation);
+  lblCharsetTranslation.Caption:= ezCharsetName[ord(CharsetTranslation)];
+  OpenTranslationFile(FilenameTranslation,CharsetTranslation);
+  lblCharsetDefault.Enabled:=True;
 end;
 
 procedure TfrmIniPrevMain.mnuMiscAboutClick(Sender: TObject);
@@ -978,10 +1156,7 @@ begin
 end;
 
 
-
 procedure TfrmIniPrevMain.mnuViewShowTranslatedClick(Sender: TObject);
-var
-  i:integer;
 begin
 frmIniPrevMain.mnuViewShowTranslated.Checked:= not (frmIniPrevMain.mnuViewShowTranslated.Checked);
   if frmIniPrevMain.mnuViewShowTranslated.Checked= False
@@ -1056,6 +1231,7 @@ begin
   tmrStatus.Enabled:=False;
 end;
 
+
 function UTF8StringReplace(const S, OldPattern, NewPattern: string{;  Flags: TReplaceFlags}): string;
 var
   StringFull: UTF16String;
@@ -1064,15 +1240,12 @@ var
 begin
        StringFull:= UTF8ToUTF16 (s) ;
        repeat
-         //ShowMessage (UTF8upperCase(OldPattern) +crlf + UTF8UpperCase(UTF16ToUTF8(StringFull)));
        StartPosition:=PosEx (UTF8LowerCase(OldPattern),UTF8LowerCase(UTF16ToUTF8(StringFull)),i);  //There is no utf16 to lowercase
        if StartPosition= 0 then
          if i=1 then StringFull:= s else break
        else
        begin
-         //Result:= UTF16ToUTF8(LeftStr(StringFull,StartPosition-1)+ UTF8ToUTF16(NewPattern)+ RightStr(StringFull, UTF8Length (StringFull)-StartPosition-UTF8Length(OldPattern)+1));
          StringFull:= UTF16ToUTF8(LeftStr(StringFull,StartPosition-1)+ UTF8ToUTF16(NewPattern)+ RightStr(StringFull, UTF8Length (StringFull)-StartPosition-UTF8Length(OldPattern)+1));
-         //ShowMessage (StringFull);
          i:=StartPosition+1;
        end; //else
      until StartPosition=0;
@@ -1094,9 +1267,8 @@ begin
        except
      end; //try
    end; //if
-  Charset:= 0;  //TODO: Is this needed?
   Localize();
-  mnuFileTranslateFile.Enabled:=TF;
+  mnuFileOpenTrans.Enabled:=TF;
   txtMDefault.Visible:=TF;
   txtMAux.Visible:= AuxLoaded;
   txtMTranslation.Visible:=TF;
@@ -1110,12 +1282,16 @@ begin
   lblCharsetDefault.Visible:=TF;
   lblCharsetTranslation.Visible:=TF;
   lblCharsetTranslationWrite.Visible:=TF;
+  lblAnsiCPMain.Visible:=TF;
+  lblAnsiCPTranslation.Visible:=TF;
   lblArrow.Visible:=TF;
   lblStatus.Visible:=TF;
   sgStringList.Enabled:=TF;
+  mnuFileOpenTrans.Enabled:=TF;
   mnuFileLoadAuxLang.Enabled:=TF;
   mnuFileSaveTranslation.Enabled:=TF;
   mnuFileSaveAs.Enabled:=TF;
+  mnuFileLoadAuxUnload.Enabled:=TF;
   mnuEditNextUntranslated.Enabled:=tf;
   mnuEditPreviousUntranslated.Enabled:=tf;
   mnuEditFind.Enabled:=tf;
@@ -1165,12 +1341,13 @@ procedure OkayClicked();
  end;  //with
 end;
 
-procedure TfrmIniPrevMain.txtMTranslationKeyPress(Sender: TObject; var Key: char
-  );
+procedure TfrmIniPrevMain.txtMTranslationKeyDown(Sender: TObject;
+  var Key: Word; Shift: TShiftState);
 begin
-if ord(Key) = 10 then OkayClicked();
-if ord(key)= 27 then  SetEditWidgets(False);
+   if (key=LCLtype.VK_RETURN) and (ssCtrl in Shift) then OkayClicked();
+   if (key=LCLType.VK_ESCAPE) then  SetEditWidgets(False);
 end;
+
 
 procedure TfrmIniPrevMain.cmdOkayClick(Sender: TObject);
  begin
@@ -1212,55 +1389,48 @@ begin
   Reposition;
 end;
 
+procedure TfrmIniPrevMain.lblAnsiCPTranslationClick(Sender: TObject);
+begin
+
+end;
+
+procedure TfrmIniPrevMain.lblBOMTranslationClick(Sender: TObject);
+begin
+
+end;
+
 procedure TfrmIniPrevMain.lblBOMTranslationWriteClick(Sender: TObject);
 begin
    BOMTranslation:=not BOMTranslation;
    if BOMTranslation= true then lblBOMTranslationWrite.Caption:= ezBOM else lblBOMTranslationWrite.Caption:= ezNoBOM;
 end;
 
-function ShiftCharset(InputCharset: Integer ): Integer;
-var
-  RetVal: Integer;
-begin
-  //ShowMessage (IntToStr (Length(ezCharsetName ))+ ';' + IntToStr(InputCharset) );
-  RetVal:= InputCharset;
-     if InputCharset < Length(ezCharsetName)-1 then RetVal:= InputCharset + 1 else RetVal:=0;
-  Result:= RetVal ;
-end;
-
-procedure TfrmIniPrevMain.lblCharsetDefaultClick(Sender: TObject);
-begin
-  CharsetMain:= ShiftCharset(CharsetMain);
-  lblCharsetDefault.Caption:= ezCharsetName[CharsetMain];
-  lblCharsetDefault.Enabled:=False;
-  OpenMainFile(FilenameDefault,CharsetMain, False);
-end;
-
-procedure TfrmIniPrevMain.lblCharsetTranslationClick(Sender: TObject);
-begin
-     if Unsaved=True then
-         if QuestionDlg   (ezWarning, ezDoYouWantToOpenTheTranslationFileWithANewEncoding + crlf +ezTheChangesInYourTranslationAreNotSavedIfYouPressYesTheyWillBeLost,
-             mtCustom, [mrYes,ezYes,mrNo,ezNo],'') = mrNo then exit;
-      CharsetTranslation:= ShiftCharset(CharsetTranslation);
-      lblCharsetTranslation.Caption:= ezCharsetName[CharsetTranslation];
-      OpenTranslationFile(FilenameTranslation,CharsetTranslation);
-end;
-
 procedure TfrmIniPrevMain.lblCharsetTranslationWriteClick(Sender: TObject);
 begin
     CharsetTranslationWrite:= ShiftCharset(CharsetTranslationWrite);
-    lblCharsetTranslationWrite.Caption:= ezCharsetName[CharsetTranslationWrite];
-    if  CharsetTranslationWrite=ord(EncodingANSI) then
+    lblCharsetTranslationWrite.Caption:= ezCharsetName[ord(CharsetTranslationWrite)];
+    if  CharsetTranslationWrite=ufANSI then
     begin
       lblBOMTranslationWrite.Caption:=ezNoBOM;
       lblBOMTranslationWrite.Enabled:=false
     end
     else
     begin
-      if BOMTranslation= True then lblBOMTranslationWrite.Caption:= ezBOM else lblBOMTranslationWrite.Caption:= ezNoBOM;
+      if BOMTranslation=True then lblBOMTranslationWrite.Caption:= ezBOM else lblBOMTranslationWrite.Caption:= ezNoBOM;
       lblBOMTranslationWrite.Enabled:=True;
     end;
-    //OpenTranslationFile(FilenameTranslation,CharsetTranslation);
+end;
+
+procedure TfrmIniPrevMain.mnuFileLoadAuxLangRecentClick(Sender: TObject);
+begin
+   OpenAuxFile();
+end;
+
+procedure TfrmIniPrevMain.mnuFileLoadAuxUnloadClick(Sender: TObject);
+begin
+   SetLength(AuxStrings,0,0);
+   AuxLoaded:=False;
+   mnuFileLoadAuxUnload.Enabled:=False;
 end;
 
 //Copies the contents of the main line into the translation line (works only in edit mode)
@@ -1275,11 +1445,21 @@ begin
      MainIntoTranslation;
 end;
 
+procedure TfrmIniPrevMain.mnuFileOpenTransBrowseClick(Sender: TObject);
+begin
+  OpenTranslationFile;
+end;
+
+procedure TfrmIniPrevMain.mnuFileOpenTransClick(Sender: TObject);
+begin
+
+end;
+
 procedure TfrmIniPrevMain.mnuFileUnloadAuxLangClick(Sender: TObject);
 begin
  SetLength(AuxStrings,0,0);
  AuxLoaded:=False;
- mnuFileUnloadAuxLang.Enabled:=False;
+ mnuFileLoadAuxUnload.Enabled:=False;
 end;
 
 procedure TfrmIniPrevMain.mnuMiscAddNewStringsClick(Sender: TObject);
@@ -1487,4 +1667,4 @@ end;
 
 
 end.
-
+

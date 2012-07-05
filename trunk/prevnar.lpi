@@ -39,14 +39,14 @@
         <PackageName Value="LCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="39">
+    <Units Count="44">
       <Unit0>
         <Filename Value="prevnar.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="Prevnar"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="8"/>
-        <CursorPos X="11" Y="15"/>
+        <TopLine Value="25"/>
+        <CursorPos X="34" Y="35"/>
         <UsageCount Value="200"/>
       </Unit0>
       <Unit1>
@@ -57,11 +57,10 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmIniPrev"/>
         <IsVisibleTab Value="True"/>
-        <EditorIndex Value="1"/>
+        <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="572"/>
-        <CursorPos X="41" Y="583"/>
-        <FoldState Value=" T3kf0H121162141 TM HoG01k"/>
+        <TopLine Value="1249"/>
+        <CursorPos X="60" Y="1254"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -74,22 +73,22 @@
         <UnitName Value="frmIniPrev"/>
         <TopLine Value="383"/>
         <CursorPos X="41" Y="397"/>
-        <UsageCount Value="7"/>
+        <UsageCount Value="9"/>
       </Unit2>
       <Unit3>
         <Filename Value="frmIniPrev.lfm"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="1" Y="1"/>
-        <UsageCount Value="7"/>
+        <UsageCount Value="9"/>
         <DefaultSyntaxHighlighter Value="LFM"/>
       </Unit3>
       <Unit4>
         <Filename Value="C:\lazarus\lcl\include\control.inc"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="3182"/>
-        <CursorPos X="1" Y="3192"/>
-        <UsageCount Value="7"/>
+        <TopLine Value="3646"/>
+        <CursorPos X="1" Y="3655"/>
+        <UsageCount Value="10"/>
       </Unit4>
       <Unit5>
         <Filename Value="D:\изпитател\Lazarus\PrevNar\frmIniPrev.pas"/>
@@ -100,19 +99,9 @@
         <WindowIndex Value="0"/>
         <TopLine Value="238"/>
         <CursorPos X="1" Y="250"/>
-        <UsageCount Value="3"/>
+        <UsageCount Value="5"/>
       </Unit5>
       <Unit6>
-        <Filename Value="frmDebug.pas"/>
-        <ComponentName Value="frmDebug"/>
-        <ResourceBaseClass Value="Form"/>
-        <UnitName Value="frmDebug"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="12"/>
-        <CursorPos X="32" Y="23"/>
-        <UsageCount Value="1"/>
-      </Unit6>
-      <Unit7>
         <Filename Value="unit1.pas"/>
         <ComponentName Value="Form1"/>
         <ResourceBaseClass Value="Form"/>
@@ -120,24 +109,17 @@
         <WindowIndex Value="0"/>
         <TopLine Value="17"/>
         <CursorPos X="36" Y="31"/>
-        <UsageCount Value="60"/>
-      </Unit7>
-      <Unit8>
-        <Filename Value="C:\lazarus\lcl\include\customform.inc"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="866"/>
-        <CursorPos X="17" Y="868"/>
-        <UsageCount Value="8"/>
-      </Unit8>
-      <Unit9>
+        <UsageCount Value="52"/>
+      </Unit6>
+      <Unit7>
         <Filename Value="C:\DOCUME~1\SF65F~1.STA\LOCALS~1\APPLIC~1\Programs\lazarus\lcl\grids.pas"/>
         <UnitName Value="Grids"/>
         <WindowIndex Value="0"/>
         <TopLine Value="8642"/>
         <CursorPos X="1" Y="8661"/>
-        <UsageCount Value="7"/>
-      </Unit9>
-      <Unit10>
+        <UsageCount Value="9"/>
+      </Unit7>
+      <Unit8>
         <Filename Value="frmPNSettings.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="frmSettings"/>
@@ -146,59 +128,41 @@
         <UnitName Value="frmPNSettings"/>
         <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="120"/>
-        <CursorPos X="76" Y="128"/>
+        <TopLine Value="247"/>
+        <CursorPos X="65" Y="250"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
-        <LoadedDesigner Value="True"/>
-      </Unit10>
-      <Unit11>
-        <Filename Value="settings.pas"/>
-        <ComponentName Value="Form1"/>
-        <ResourceBaseClass Value="Form"/>
-        <UnitName Value="settings"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
-        <CursorPos X="49" Y="11"/>
-        <UsageCount Value="8"/>
-      </Unit11>
-      <Unit12>
-        <Filename Value="C:\DOCUME~1\SF65F~1.STA\LOCALS~1\APPLIC~1\Programs\lazarus\lcl\include\customform.inc"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="2092"/>
-        <CursorPos X="1" Y="2110"/>
-        <UsageCount Value="4"/>
-      </Unit12>
-      <Unit13>
+      </Unit8>
+      <Unit9>
         <Filename Value="C:\DOCUME~1\SF65F~1.STA\LOCALS~1\APPLIC~1\Programs\lazarus\lcl\include\brush.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="26"/>
         <CursorPos X="1" Y="46"/>
-        <UsageCount Value="5"/>
-      </Unit13>
-      <Unit14>
+        <UsageCount Value="7"/>
+      </Unit9>
+      <Unit10>
         <Filename Value="C:\DOCUME~1\SF65F~1.STA\LOCALS~1\APPLIC~1\Programs\lazarus\lcl\graphics.pp"/>
         <UnitName Value="Graphics"/>
         <WindowIndex Value="0"/>
         <TopLine Value="2538"/>
         <CursorPos X="1" Y="2563"/>
-        <UsageCount Value="5"/>
-      </Unit14>
-      <Unit15>
+        <UsageCount Value="7"/>
+      </Unit10>
+      <Unit11>
         <Filename Value="C:\DOCUME~1\SF65F~1.STA\LOCALS~1\APPLIC~1\Programs\lazarus\lcl\include\menuitem.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="65"/>
         <CursorPos X="1" Y="83"/>
-        <UsageCount Value="9"/>
-      </Unit15>
-      <Unit16>
+        <UsageCount Value="1"/>
+      </Unit11>
+      <Unit12>
         <Filename Value="C:\DOCUME~1\SF65F~1.STA\LOCALS~1\APPLIC~1\Programs\lazarus\lcl\interfaces\win32\win32callback.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1209"/>
         <CursorPos X="1" Y="1227"/>
-        <UsageCount Value="6"/>
-      </Unit16>
-      <Unit17>
+        <UsageCount Value="8"/>
+      </Unit12>
+      <Unit13>
         <Filename Value="frmPNSearch.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="frmSearch"/>
@@ -209,8 +173,8 @@
         <TopLine Value="44"/>
         <CursorPos X="3" Y="78"/>
         <UsageCount Value="200"/>
-      </Unit17>
-      <Unit18>
+      </Unit13>
+      <Unit14>
         <Filename Value="frmPNGoto.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="frmGoto"/>
@@ -220,294 +184,372 @@
         <WindowIndex Value="0"/>
         <TopLine Value="15"/>
         <CursorPos X="3" Y="34"/>
-        <UsageCount Value="188"/>
-      </Unit18>
-      <Unit19>
-        <Filename Value="E:\Progra~1\lazarus\lcl\include\menuitem.inc"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="246"/>
-        <CursorPos X="1" Y="258"/>
-        <UsageCount Value="8"/>
-      </Unit19>
-      <Unit20>
-        <Filename Value="E:\Progra~1\lazarus\lcl\interfaces\win32\win32callback.inc"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="2585"/>
-        <CursorPos X="1" Y="2605"/>
-        <UsageCount Value="8"/>
-      </Unit20>
-      <Unit21>
-        <Filename Value="E:\Progra~1\lazarus\lcl\interfaces\win32\win32wsforms.pp"/>
-        <UnitName Value="Win32WSForms"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="346"/>
-        <CursorPos X="1" Y="357"/>
-        <UsageCount Value="8"/>
-      </Unit21>
-      <Unit22>
+        <UsageCount Value="202"/>
+      </Unit14>
+      <Unit15>
         <Filename Value="PNCommons.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="PNCommons"/>
-        <EditorIndex Value="0"/>
+        <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="106"/>
-        <CursorPos X="48" Y="124"/>
-        <UsageCount Value="182"/>
+        <TopLine Value="480"/>
+        <CursorPos X="1" Y="512"/>
+        <UsageCount Value="201"/>
         <Loaded Value="True"/>
-      </Unit22>
-      <Unit23>
+      </Unit15>
+      <Unit16>
         <Filename Value="C:\lazarus\lcl\lresources.pp"/>
         <UnitName Value="LResources"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1634"/>
         <CursorPos X="1" Y="1667"/>
-        <UsageCount Value="12"/>
-      </Unit23>
-      <Unit24>
+        <UsageCount Value="4"/>
+      </Unit16>
+      <Unit17>
         <Filename Value="D:\изпитател\Lazarus\PrevNar\frmPNSettings.pas"/>
         <UnitName Value="frmPNSettings"/>
         <WindowIndex Value="0"/>
         <TopLine Value="200"/>
         <CursorPos X="17" Y="211"/>
-        <UsageCount Value="5"/>
-      </Unit24>
-      <Unit25>
+        <UsageCount Value="7"/>
+      </Unit17>
+      <Unit18>
         <Filename Value="D:\изпитател\Lazarus\PrevNar\PNCommons.pas"/>
         <UnitName Value="PNCommons"/>
         <WindowIndex Value="0"/>
         <TopLine Value="136"/>
         <CursorPos X="1" Y="154"/>
-        <UsageCount Value="5"/>
-      </Unit25>
-      <Unit26>
+        <UsageCount Value="7"/>
+      </Unit18>
+      <Unit19>
         <Filename Value="C:\DOCUME~1\SF65F~1.STA\LOCALS~1\APPLIC~1\Programs\lazarus\lcl\include\customcombobox.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="900"/>
         <CursorPos X="1" Y="923"/>
-        <UsageCount Value="7"/>
-      </Unit26>
-      <Unit27>
+        <UsageCount Value="9"/>
+      </Unit19>
+      <Unit20>
         <Filename Value="C:\DOCUME~1\SF65F~1.STA\LOCALS~1\APPLIC~1\Programs\lazarus\lcl\include\wincontrol.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="7201"/>
         <CursorPos X="1" Y="7221"/>
-        <UsageCount Value="7"/>
-      </Unit27>
-      <Unit28>
+        <UsageCount Value="9"/>
+      </Unit20>
+      <Unit21>
         <Filename Value="..\..\..\изпитател\Lazarus\PrevNar17\frmPNSettings.pas"/>
         <UnitName Value="frmPNSettings"/>
         <WindowIndex Value="0"/>
         <TopLine Value="108"/>
         <CursorPos X="1" Y="120"/>
-        <UsageCount Value="7"/>
-      </Unit28>
-      <Unit29>
-        <Filename Value="C:\изпитател\Lazarus\PrevNar\trunk\PrevNar\frmPNSettings.pas"/>
-        <UnitName Value="frmPNSettings"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="91"/>
-        <CursorPos X="1" Y="111"/>
-        <UsageCount Value="8"/>
-      </Unit29>
-      <Unit30>
-        <Filename Value="C:\изпитател\Lazarus\PrevNar\PrevNar\trunk\PNCommons.pas"/>
-        <UnitName Value="PNCommons"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="478"/>
-        <CursorPos X="13" Y="488"/>
-        <UsageCount Value="8"/>
-      </Unit30>
-      <Unit31>
-        <Filename Value="C:\изпитател\Lazarus\PrevNar\PrevNar\trunk\frmPNSettings.pas"/>
-        <UnitName Value="frmPNSettings"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="98"/>
-        <CursorPos X="1" Y="110"/>
-        <UsageCount Value="8"/>
-      </Unit31>
-      <Unit32>
+        <UsageCount Value="9"/>
+      </Unit21>
+      <Unit22>
         <Filename Value="C:\usr\lib\lazarus\0.9.30.4\lcl\textstrings.pas"/>
         <UnitName Value="TextStrings"/>
         <WindowIndex Value="0"/>
         <TopLine Value="87"/>
         <CursorPos X="1" Y="102"/>
-        <UsageCount Value="11"/>
-      </Unit32>
-      <Unit33>
+        <UsageCount Value="3"/>
+      </Unit22>
+      <Unit23>
         <Filename Value="C:\usr\lib\lazarus\0.9.30.4\lcl\lclproc.pas"/>
         <UnitName Value="LCLProc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="3301"/>
         <CursorPos X="1" Y="3314"/>
-        <UsageCount Value="12"/>
-      </Unit33>
-      <Unit34>
+        <UsageCount Value="4"/>
+      </Unit23>
+      <Unit24>
         <Filename Value="C:\DOCUME~1\SF65F~1.STA\LOCALS~1\APPLIC~1\Programs\lazarus\lcl\include\control.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="3645"/>
         <CursorPos X="15" Y="3654"/>
-        <UsageCount Value="9"/>
-      </Unit34>
-      <Unit35>
-        <Filename Value="..\..\..\..\изпитател\Lazarus\PrevNar\svn\frmIniPrev.pas"/>
+        <UsageCount Value="1"/>
+      </Unit24>
+      <Unit25>
+        <Filename Value="E:\изпитател\Lazarus\PrevNar\svn\frmIniPrev.pas"/>
         <UnitName Value="frmIniPrev"/>
         <WindowIndex Value="0"/>
         <TopLine Value="183"/>
         <CursorPos X="20" Y="188"/>
-        <UsageCount Value="10"/>
-      </Unit35>
-      <Unit36>
+        <UsageCount Value="2"/>
+      </Unit25>
+      <Unit26>
         <Filename Value="C:\lazarus\lcl\interfaces\win32\win32wsdialogs.pp"/>
         <UnitName Value="Win32WSDialogs"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="1" Y="1"/>
-        <UsageCount Value="9"/>
-      </Unit36>
-      <Unit37>
-        <Filename Value="..\..\..\..\изпитател\Lazarus\PrevNar\svn\frmPNSettings.pas"/>
+        <UsageCount Value="1"/>
+      </Unit26>
+      <Unit27>
+        <Filename Value="E:\изпитател\Lazarus\PrevNar\svn\frmPNSettings.pas"/>
         <UnitName Value="frmPNSettings"/>
         <WindowIndex Value="0"/>
         <TopLine Value="87"/>
         <CursorPos X="60" Y="103"/>
-        <UsageCount Value="10"/>
-      </Unit37>
-      <Unit38>
+        <UsageCount Value="2"/>
+      </Unit27>
+      <Unit28>
         <Filename Value="frmPNAbout.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="frmAbout"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmPNAbout"/>
-        <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="26" Y="9"/>
-        <UsageCount Value="24"/>
+        <UsageCount Value="136"/>
+      </Unit28>
+      <Unit29>
+        <Filename Value="charencstreams.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="charencstreams"/>
+        <EditorIndex Value="1"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="18" Y="17"/>
+        <UsageCount Value="117"/>
         <Loaded Value="True"/>
-        <LoadedDesigner Value="True"/>
+      </Unit29>
+      <Unit30>
+        <Filename Value="E:\мои\PrevNar\svn\branches\frmPNSettings.pas"/>
+        <UnitName Value="frmPNSettings"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="108"/>
+        <CursorPos X="1" Y="126"/>
+        <UsageCount Value="5"/>
+      </Unit30>
+      <Unit31>
+        <Filename Value="E:\мои\PrevNar\svn\branches\frmIniPrev.pas"/>
+        <UnitName Value="frmIniPrev"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1225"/>
+        <CursorPos X="1" Y="1237"/>
+        <UsageCount Value="9"/>
+      </Unit31>
+      <Unit32>
+        <Filename Value="E:\мои\PrevNar\svn\branches\PNCommons.pas"/>
+        <UnitName Value="PNCommons"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="503"/>
+        <CursorPos X="17" Y="519"/>
+        <UsageCount Value="8"/>
+      </Unit32>
+      <Unit33>
+        <Filename Value="C:\изпитател\Lazarus\PrevNar\svn\branches\cm630\frmIniPrev.pas"/>
+        <ComponentName Value="frmIniPrevMain"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="frmIniPrev"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="753"/>
+        <CursorPos X="34" Y="773"/>
+        <UsageCount Value="11"/>
+      </Unit33>
+      <Unit34>
+        <Filename Value="C:\изпитател\Lazarus\PrevNar\svn\branches\cm630\PNCommons.pas"/>
+        <UnitName Value="PNCommons"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="390"/>
+        <CursorPos X="1" Y="396"/>
+        <UsageCount Value="11"/>
+      </Unit34>
+      <Unit35>
+        <Filename Value="C:\изпитател\Lazarus\PrevNar\svn\branches\cm630\charencstreams.pas"/>
+        <UnitName Value="charencstreams"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="24" Y="210"/>
+        <UsageCount Value="19"/>
+      </Unit35>
+      <Unit36>
+        <Filename Value="ChooseFileWithTextPreview.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="frmChooseFileWithTextPreview"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="ChooseFileWithTextPreview"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="23"/>
+        <CursorPos X="18" Y="30"/>
+        <UsageCount Value="62"/>
+      </Unit36>
+      <Unit37>
+        <Filename Value="C:\lazarus\lcl\include\filedialog.inc"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="171"/>
+        <CursorPos X="31" Y="175"/>
+        <UsageCount Value="9"/>
+      </Unit37>
+      <Unit38>
+        <Filename Value="C:\lazarus\lcl\include\commondialog.inc"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="1" Y="35"/>
+        <UsageCount Value="9"/>
       </Unit38>
+      <Unit39>
+        <Filename Value="C:\lazarus\lcl\include\menuitem.inc"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="257"/>
+        <CursorPos X="1" Y="267"/>
+        <UsageCount Value="10"/>
+      </Unit39>
+      <Unit40>
+        <Filename Value="C:\изпитател\Lazarus\PrevNar\svn\branches\cm630\frmPNSettings.pas"/>
+        <UnitName Value="frmPNSettings"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="121"/>
+        <CursorPos X="1" Y="137"/>
+        <UsageCount Value="10"/>
+      </Unit40>
+      <Unit41>
+        <Filename Value="..\..\..\..\..\изпитател\Lazarus\PrevNar\svn\trunk\frmIniPrev.pas"/>
+        <UnitName Value="frmIniPrev"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="994"/>
+        <CursorPos X="6" Y="1004"/>
+        <UsageCount Value="10"/>
+      </Unit41>
+      <Unit42>
+        <Filename Value="..\..\..\..\..\изпитател\Lazarus\PrevNar\svn\trunk\charencstreams.pas"/>
+        <UnitName Value="charencstreams"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="145"/>
+        <CursorPos X="53" Y="157"/>
+        <UsageCount Value="10"/>
+      </Unit42>
+      <Unit43>
+        <Filename Value="..\..\..\..\..\изпитател\Lazarus\PrevNar\svn\trunk\PNCommons.pas"/>
+        <UnitName Value="PNCommons"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="506"/>
+        <CursorPos X="13" Y="521"/>
+        <UsageCount Value="10"/>
+      </Unit43>
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="frmIniPrev.pas"/>
-        <Caret Line="1081" Column="16" TopLine="1057"/>
+        <Filename Value="charencstreams.pas"/>
+        <Caret Line="63" Column="13" TopLine="49"/>
       </Position1>
       <Position2>
-        <Filename Value="frmIniPrev.pas"/>
-        <Caret Line="1083" Column="98" TopLine="1065"/>
+        <Filename Value="charencstreams.pas"/>
+        <Caret Line="64" Column="24" TopLine="49"/>
       </Position2>
       <Position3>
-        <Filename Value="frmIniPrev.pas"/>
-        <Caret Line="1272" Column="7" TopLine="1270"/>
+        <Filename Value="charencstreams.pas"/>
+        <Caret Line="65" Column="25" TopLine="49"/>
       </Position3>
       <Position4>
-        <Filename Value="frmIniPrev.pas"/>
-        <Caret Line="617" Column="16" TopLine="604"/>
+        <Filename Value="charencstreams.pas"/>
+        <Caret Line="72" Column="62" TopLine="49"/>
       </Position4>
       <Position5>
-        <Filename Value="frmIniPrev.pas"/>
-        <Caret Line="923" Column="91" TopLine="906"/>
+        <Filename Value="charencstreams.pas"/>
+        <Caret Line="75" Column="30" TopLine="51"/>
       </Position5>
       <Position6>
-        <Filename Value="frmIniPrev.pas"/>
-        <Caret Line="1181" Column="38" TopLine="1170"/>
+        <Filename Value="charencstreams.pas"/>
+        <Caret Line="84" Column="30" TopLine="66"/>
       </Position6>
       <Position7>
-        <Filename Value="PNCommons.pas"/>
-        <Caret Line="68" Column="42" TopLine="68"/>
+        <Filename Value="charencstreams.pas"/>
+        <Caret Line="167" Column="9" TopLine="152"/>
       </Position7>
       <Position8>
-        <Filename Value="frmIniPrev.pas"/>
-        <Caret Line="610" Column="22" TopLine="605"/>
+        <Filename Value="charencstreams.pas"/>
+        <Caret Line="63" Column="13" TopLine="53"/>
       </Position8>
       <Position9>
-        <Filename Value="frmIniPrev.pas"/>
-        <Caret Line="352" Column="23" TopLine="348"/>
+        <Filename Value="charencstreams.pas"/>
+        <Caret Line="64" Column="24" TopLine="53"/>
       </Position9>
       <Position10>
-        <Filename Value="frmIniPrev.pas"/>
-        <Caret Line="359" Column="20" TopLine="354"/>
+        <Filename Value="charencstreams.pas"/>
+        <Caret Line="65" Column="25" TopLine="53"/>
       </Position10>
       <Position11>
-        <Filename Value="frmIniPrev.pas"/>
-        <Caret Line="622" Column="41" TopLine="611"/>
+        <Filename Value="charencstreams.pas"/>
+        <Caret Line="72" Column="62" TopLine="56"/>
       </Position11>
       <Position12>
         <Filename Value="frmIniPrev.pas"/>
-        <Caret Line="1085" Column="7" TopLine="1077"/>
+        <Caret Line="624" Column="28" TopLine="610"/>
       </Position12>
       <Position13>
-        <Filename Value="frmIniPrev.pas"/>
-        <Caret Line="631" Column="1" TopLine="544"/>
+        <Filename Value="charencstreams.pas"/>
+        <Caret Line="359" Column="32" TopLine="344"/>
       </Position13>
       <Position14>
         <Filename Value="frmIniPrev.pas"/>
-        <Caret Line="1282" Column="37" TopLine="1278"/>
+        <Caret Line="1393" Column="25" TopLine="1382"/>
       </Position14>
       <Position15>
-        <Filename Value="frmIniPrev.pas"/>
-        <Caret Line="482" Column="17" TopLine="405"/>
+        <Filename Value="PNCommons.pas"/>
+        <Caret Line="204" Column="27" TopLine="196"/>
       </Position15>
       <Position16>
-        <Filename Value="frmIniPrev.pas"/>
-        <Caret Line="504" Column="63" TopLine="480"/>
+        <Filename Value="PNCommons.pas"/>
+        <Caret Line="49" Column="18" TopLine="39"/>
       </Position16>
       <Position17>
-        <Filename Value="frmIniPrev.pas"/>
-        <Caret Line="505" Column="15" TopLine="481"/>
+        <Filename Value="PNCommons.pas"/>
+        <Caret Line="47" Column="20" TopLine="37"/>
       </Position17>
       <Position18>
-        <Filename Value="frmIniPrev.pas"/>
-        <Caret Line="506" Column="54" TopLine="482"/>
+        <Filename Value="PNCommons.pas"/>
+        <Caret Line="495" Column="26" TopLine="482"/>
       </Position18>
       <Position19>
-        <Filename Value="frmIniPrev.pas"/>
-        <Caret Line="507" Column="28" TopLine="483"/>
+        <Filename Value="PNCommons.pas"/>
+        <Caret Line="49" Column="18" TopLine="39"/>
       </Position19>
       <Position20>
-        <Filename Value="frmIniPrev.pas"/>
-        <Caret Line="545" Column="13" TopLine="521"/>
+        <Filename Value="frmPNSettings.pas"/>
+        <Caret Line="91" Column="1" TopLine="1"/>
       </Position20>
       <Position21>
-        <Filename Value="frmIniPrev.pas"/>
-        <Caret Line="506" Column="54" TopLine="501"/>
+        <Filename Value="frmPNSettings.pas"/>
+        <Caret Line="229" Column="1" TopLine="218"/>
       </Position21>
       <Position22>
-        <Filename Value="frmIniPrev.pas"/>
-        <Caret Line="507" Column="19" TopLine="501"/>
+        <Filename Value="frmPNSettings.pas"/>
+        <Caret Line="97" Column="29" TopLine="87"/>
       </Position22>
       <Position23>
-        <Filename Value="frmIniPrev.pas"/>
-        <Caret Line="46" Column="22" TopLine="32"/>
+        <Filename Value="frmPNSettings.pas"/>
+        <Caret Line="99" Column="94" TopLine="87"/>
       </Position23>
       <Position24>
-        <Filename Value="frmIniPrev.pas"/>
-        <Caret Line="89" Column="32" TopLine="65"/>
+        <Filename Value="frmPNSettings.pas"/>
+        <Caret Line="105" Column="27" TopLine="89"/>
       </Position24>
       <Position25>
-        <Filename Value="frmIniPrev.pas"/>
-        <Caret Line="143" Column="14" TopLine="119"/>
+        <Filename Value="frmPNSettings.pas"/>
+        <Caret Line="121" Column="1" TopLine="103"/>
       </Position25>
       <Position26>
-        <Filename Value="frmIniPrev.pas"/>
-        <Caret Line="1216" Column="38" TopLine="1212"/>
+        <Filename Value="PNCommons.pas"/>
+        <Caret Line="47" Column="1" TopLine="34"/>
       </Position26>
       <Position27>
-        <Filename Value="frmIniPrev.pas"/>
-        <Caret Line="1230" Column="15" TopLine="1225"/>
+        <Filename Value="frmPNSettings.pas"/>
+        <Caret Line="238" Column="15" TopLine="229"/>
       </Position27>
       <Position28>
-        <Filename Value="frmIniPrev.pas"/>
-        <Caret Line="558" Column="22" TopLine="555"/>
+        <Filename Value="frmPNSettings.pas"/>
+        <Caret Line="109" Column="18" TopLine="103"/>
       </Position28>
       <Position29>
-        <Filename Value="frmIniPrev.pas"/>
-        <Caret Line="559" Column="37" TopLine="552"/>
+        <Filename Value="frmPNSettings.pas"/>
+        <Caret Line="102" Column="24" TopLine="91"/>
       </Position29>
       <Position30>
         <Filename Value="frmIniPrev.pas"/>
-        <Caret Line="39" Column="15" TopLine="30"/>
+        <Caret Line="27" Column="74" TopLine="19"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>
@@ -540,6 +582,15 @@
     </Other>
   </CompilerOptions>
   <Debugging>
+    <BreakPoints Count="1">
+      <Item1>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsGlobal"/>
+        <WatchKind Value="wpkWrite"/>
+        <Source Value="charencstreams.pas"/>
+        <Line Value="360"/>
+      </Item1>
+    </BreakPoints>
     <Watches Count="1">
       <Item1>
         <Expression Value="GetRowIndex"/>
