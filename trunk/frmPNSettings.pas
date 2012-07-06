@@ -161,11 +161,7 @@ var
  Value:String;
  FileContents:UniFile;
 begin
- if FileExistsUTF8 (AppendPathDelim(ProgramDirectory) + SettingsFile)  then
- begin
- try
-   FileContents:=ReadUTF8(AppendPathDelim(ProgramDirectory) + SettingsFile);
-   with frmIniPrevMain do
+    with frmIniPrevMain do
    begin //with
      for i:=0 to frmSettings.speRecent.Value-1 do
      begin  //for i
@@ -191,6 +187,10 @@ begin
        mnuFileRecentAux[i].Visible:=False;
      end; //next i
    end; //with
+ if FileExistsUTF8 (AppendPathDelim(ProgramDirectory) + SettingsFile)  then
+ begin
+ try
+   FileContents:=ReadUTF8(AppendPathDelim(ProgramDirectory) + SettingsFile);
    SettingsContents:=Split(FileContents [0],CrLf);
    for i:= 0 to Length(SettingsContents)-1 do
    begin  //for
@@ -230,6 +230,9 @@ ConfirmAutotranslate:= 0;
 IgnoreSections:= False;
 DebugMode:=False;
 RecentStore:=5;
+//RecentMain:='';
+//RecentTrans:='';
+//RecentAux:='';
 SaveSettings;
 end;
  SetSettings;
