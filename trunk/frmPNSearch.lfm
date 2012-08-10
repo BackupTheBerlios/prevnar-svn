@@ -1,7 +1,7 @@
 object frmSearch: TfrmSearch
-  Left = 569
+  Left = 508
   Height = 197
-  Top = 541
+  Top = 270
   Width = 386
   BorderStyle = bsDialog
   Caption = 'Search...'
@@ -35,7 +35,6 @@ object frmSearch: TfrmSearch
     Caption = 'Search'
     Default = True
     ModalResult = 1
-    OnClick = cmdSearchClick
     TabOrder = 1
   end
   object chkCaseSensitive: TCheckBox

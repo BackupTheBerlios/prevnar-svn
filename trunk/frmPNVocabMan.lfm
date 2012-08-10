@@ -1,0 +1,110 @@
+object frmVocabMan: TfrmVocabMan
+  Left = 355
+  Height = 328
+  Top = 110
+  Width = 500
+  Caption = 'Vocabulary manager'
+  ClientHeight = 328
+  ClientWidth = 500
+  Constraints.MaxHeight = 328
+  Constraints.MaxWidth = 500
+  Constraints.MinHeight = 328
+  Constraints.MinWidth = 500
+  OnActivate = FormActivate
+  OnCreate = FormCreate
+  LCLVersion = '1.1'
+  object fneVocabFilename: TFileNameEdit
+    Left = 16
+    Height = 21
+    Top = 24
+    Width = 448
+    InitialDir = 'D:\ССТАНЕВ\ок\ros'
+    FilterIndex = 0
+    HideDirectories = False
+    ButtonWidth = 23
+    NumGlyphs = 1
+    MaxLength = 0
+    TabOrder = 0
+    OnChange = fneVocabFilenameChange
+  end
+  object lblVocabFileName: TLabel
+    Left = 16
+    Height = 14
+    Top = 11
+    Width = 75
+    Caption = 'Vocabulary file:'
+    ParentColor = False
+  end
+  object lblVocabSources: TLabel
+    Left = 16
+    Height = 14
+    Top = 56
+    Width = 94
+    Caption = 'Vocabulary sources'
+    ParentColor = False
+  end
+  object cmdAddSources: TButton
+    Left = 16
+    Height = 25
+    Top = 288
+    Width = 112
+    Caption = 'Add sources'
+    OnClick = cmdAddSourcesClick
+    TabOrder = 1
+  end
+  object cmdSaveVocab: TButton
+    Left = 256
+    Height = 25
+    Top = 288
+    Width = 112
+    Caption = 'Save vocabulary'
+    OnClick = cmdSaveVocabClick
+    TabOrder = 2
+  end
+  object cmdDone: TButton
+    Left = 376
+    Height = 25
+    Top = 288
+    Width = 112
+    Caption = 'Done'
+    ModalResult = 1
+    OnClick = cmdDoneClick
+    TabOrder = 3
+  end
+  object sgVocabSources: TStringGrid
+    Left = 16
+    Height = 208
+    Top = 72
+    Width = 472
+    AutoAdvance = aaNone
+    AutoEdit = False
+    ColCount = 2
+    ExtendedSelect = False
+    FixedCols = 0
+    HeaderHotZones = []
+    HeaderPushZones = []
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goRowSelect, goDblClickAutoSize, goSmoothScroll]
+    ParentBiDiMode = False
+    RowCount = 1
+    ScrollBars = ssAutoVertical
+    TabOrder = 4
+    ColWidths = (
+      30
+      97
+    )
+  end
+  object cmdRemoveSources: TButton
+    Left = 136
+    Height = 25
+    Top = 288
+    Width = 112
+    Caption = 'Remove sources'
+    OnClick = cmdRemoveSourcesClick
+    TabOrder = 5
+  end
+  object odMultipleFiles: TOpenDialog
+    Title = 'Open sources'
+    Options = [ofAllowMultiSelect, ofFileMustExist, ofEnableSizing, ofViewDetail, ofAutoPreview]
+    left = 192
+  end
+end

@@ -1,5 +1,5 @@
 {
-    ПревНар- приложение за превеждане на INI-подобни файлове./PrevNar- an application for translating INI-like files.
+    ПревНарин- приложение за превеждане на INI-подобни файлове./PrevNarin- an application for translating INI-like files.
     Възпроизводствено право/Copyright (C) 2012  СМ630
 
     This program is free software: you can redistribute it and/or modify
@@ -27,18 +27,19 @@ uses
   {$ENDIF}{$ENDIF}
   //Interfaces, // this includes the LCL widgetset
   Forms, Interfaces, frmIniPrev, frmPNSettings, frmPNSearch, frmPNGoto,
-  PNCommons, frmPNAbout, charencstreams;
+  PNCommons, frmPNAbout, charencstreams, frmPNVocabMan;
 
 {$R *.res}
 
 begin
-  Application.Title:='ПревНар [PrevNar]';
+  Application.Title:='ПревНарин [PrevNarin]';
   Application.Initialize;
   Application.CreateForm(TfrmIniPrevMain, frmIniPrevMain);
   Application.CreateForm(TfrmSettings, frmSettings);
   Application.CreateForm(TfrmSearch, frmSearch);
   Application.CreateForm(TfrmGoto, frmGoto);
   Application.CreateForm(TfrmAbout, frmAbout);
+  Application.CreateForm(TfrmVocabMan, frmVocabMan);
   Application.Run;
 end.
 

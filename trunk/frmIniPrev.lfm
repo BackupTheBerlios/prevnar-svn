@@ -1,20 +1,18 @@
 object frmIniPrevMain: TfrmIniPrevMain
-  Left = 319
+  Left = 326
   Height = 483
-  Top = 53
+  Top = 79
   Width = 664
   Caption = 'Ini Translator'
-  ClientHeight = 462
+  ClientHeight = 463
   ClientWidth = 664
   Constraints.MinHeight = 483
   Constraints.MinWidth = 664
-  FormStyle = fsStayOnTop
   Menu = mmMain
-  OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnResize = FormResize
-  LCLVersion = '0.9.30.4'
+  LCLVersion = '1.1'
   object sgStringList: TStringGrid
     Left = 16
     Height = 314
@@ -44,9 +42,9 @@ object frmIniPrevMain: TfrmIniPrevMain
   end
   object lblNewLineStringDefault: TLabel
     Left = 8
-    Height = 18
+    Height = 14
     Top = 384
-    Width = 18
+    Width = 13
     Caption = 'NL'
     Font.CharSet = 4
     Font.Color = clBlack
@@ -99,9 +97,9 @@ object frmIniPrevMain: TfrmIniPrevMain
   end
   object lblNewLineStringTranslation: TLabel
     Left = 8
-    Height = 18
+    Height = 14
     Top = 408
-    Width = 18
+    Width = 13
     Caption = 'NL'
     Font.CharSet = 4
     Font.Color = clBlack
@@ -109,6 +107,7 @@ object frmIniPrevMain: TfrmIniPrevMain
     Font.Quality = fqDraft
     ParentColor = False
     ParentFont = False
+    OnClick = lblNewLineStringTranslationClick
   end
   object lblStatus: TLabel
     Left = 224
@@ -126,9 +125,9 @@ object frmIniPrevMain: TfrmIniPrevMain
   end
   object lblCharsetDefault: TLabel
     Left = 40
-    Height = 18
+    Height = 14
     Top = 384
-    Width = 31
+    Width = 26
     Caption = 'UTF8'
     Enabled = False
     Font.CharSet = 4
@@ -141,10 +140,10 @@ object frmIniPrevMain: TfrmIniPrevMain
   end
   object lblCharsetTranslation: TLabel
     Left = 40
-    Height = 18
+    Height = 14
     Hint = 'Encoding, used when reading the file. Click on it to change it.'
     Top = 408
-    Width = 31
+    Width = 26
     Caption = 'UTF8'
     Font.CharSet = 4
     Font.Color = clBlack
@@ -158,48 +157,47 @@ object frmIniPrevMain: TfrmIniPrevMain
   end
   object lblBOMDefault: TLabel
     Left = 152
-    Height = 18
+    Height = 14
     Top = 384
-    Width = 31
+    Width = 23
     Caption = 'BOM'
     Enabled = False
     ParentColor = False
   end
   object lblBOMTranslation: TLabel
     Left = 152
-    Height = 18
+    Height = 14
     Hint = 'Show if BOM is present in the file.'
     Top = 408
-    Width = 31
+    Width = 23
     Caption = 'BOM'
     Enabled = False
     ParentColor = False
     ParentShowHint = False
     ShowHint = True
-    OnClick = lblBOMTranslationClick
   end
   object lblStatusSecondary: TLabel
-    Left = 320
-    Height = 18
+    Left = 328
+    Height = 14
     Top = 408
-    Width = 39
+    Width = 32
     Caption = 'Status'
     ParentColor = False
   end
   object lblArrow: TLabel
     Left = 200
-    Height = 18
+    Height = 14
     Top = 408
-    Width = 12
+    Width = 13
     Caption = '->'
     ParentColor = False
   end
   object lblCharsetTranslationWrite: TLabel
     Left = 224
-    Height = 18
+    Height = 14
     Hint = 'Encoding, used when writing the file. Click on it to change it.'
     Top = 408
-    Width = 31
+    Width = 26
     Caption = 'UTF8'
     ParentColor = False
     ParentShowHint = False
@@ -208,10 +206,10 @@ object frmIniPrevMain: TfrmIniPrevMain
   end
   object lblBOMTranslationWrite: TLabel
     Left = 280
-    Height = 18
+    Height = 14
     Hint = 'Write the file with or without BOM. Click to toggle.'
     Top = 408
-    Width = 31
+    Width = 23
     Caption = 'BOM'
     ParentColor = False
     ParentShowHint = False
@@ -230,29 +228,35 @@ object frmIniPrevMain: TfrmIniPrevMain
   end
   object lblAnsiCPMain: TLabel
     Left = 112
-    Height = 18
+    Height = 14
     Top = 384
-    Width = 16
+    Width = 19
     Caption = '___'
     Enabled = False
     ParentColor = False
   end
   object lblAnsiCPTranslation: TLabel
     Left = 112
-    Height = 18
+    Height = 14
     Top = 408
-    Width = 16
+    Width = 19
     Caption = '___'
     Enabled = False
     ParentColor = False
-    OnClick = lblAnsiCPTranslationClick
+  end
+  object pbCommon: TProgressBar
+    Left = 384
+    Height = 20
+    Top = 408
+    Width = 244
+    TabOrder = 6
   end
   object mmMain: TMainMenu
     left = 16
     object mnuFile: TMenuItem
-      Caption = 'File'
+      Caption = '&File'
       object mnuFileOpenMain: TMenuItem
-        Caption = 'Open main translation file'
+        Caption = 'Open &main translation file'
         OnClick = mnuFileOpenMainClick
         object mnuFileOpenMainBrowse: TMenuItem
           Caption = 'Browse...'
@@ -264,8 +268,7 @@ object frmIniPrevMain: TfrmIniPrevMain
         end
       end
       object mnuFileOpenTrans: TMenuItem
-        Caption = 'Open file for translation'
-        OnClick = mnuFileOpenTransClick
+        Caption = 'Open file for &translation'
         object mnuFileOpenTransBrowse: TMenuItem
           Caption = 'Browse...'
           ShortCut = 16468
@@ -276,7 +279,7 @@ object frmIniPrevMain: TfrmIniPrevMain
         end
       end
       object mnuFileLoadAuxLang: TMenuItem
-        Caption = 'Load auxiliary language'
+        Caption = 'Load &auxiliary language'
         Hint = 'Translation in the auxiliary language is shown in edit mode, to give you an extra hint for translating. Currently only one auxiliary file is supported.'
         object mnuFileLoadAuxLangRecent: TMenuItem
           Caption = 'Browse...'
@@ -291,25 +294,29 @@ object frmIniPrevMain: TfrmIniPrevMain
         end
       end
       object mnuFileSaveTranslation: TMenuItem
-        Caption = 'Save translation'
+        Caption = '&Save translation'
         ShortCut = 16467
         OnClick = mnuFileSaveTranslationClick
       end
       object mnuFileSaveAs: TMenuItem
-        Caption = 'Save translation as...'
+        Caption = 'Save translation &as...'
         OnClick = mnuFileSaveAsClick
+      end
+      object mnuFileCreateEmpty: TMenuItem
+        Caption = 'Create an &empty translation'
+        OnClick = mnuFileCreateEmptyClick
       end
       object mnuFileSeparator01: TMenuItem
         Caption = '-'
       end
       object mnuFileExit: TMenuItem
-        Caption = 'Exit'
+        Caption = 'E&xit'
         ShortCut = 32883
         OnClick = mnuFileExitClick
       end
     end
     object mnuEdit: TMenuItem
-      Caption = 'Edit'
+      Caption = '&Edit'
       object mnuEditNextUntranslated: TMenuItem
         Caption = 'Next untranslated'
         ShortCut = 115
@@ -321,22 +328,22 @@ object frmIniPrevMain: TfrmIniPrevMain
         OnClick = mnuEditPreviousUntranslatedClick
       end
       object mnuEditFind: TMenuItem
-        Caption = 'Find...'
+        Caption = '&Find...'
         ShortCut = 16454
         OnClick = mnuEditFindClick
       end
       object mnuEditFindNext: TMenuItem
-        Caption = 'Find next'
+        Caption = 'Find &next'
         ShortCut = 114
         OnClick = mnuEditFindNextClick
       end
       object mnuEditFindPrev: TMenuItem
-        Caption = 'Find previous'
+        Caption = 'Find& previous'
         ShortCut = 8306
         OnClick = mnuEditFindPrevClick
       end
       object mnuEditGoToLine: TMenuItem
-        Caption = 'Go to line...'
+        Caption = '&Go to line...'
         ShortCut = 16455
         OnClick = mnuEditGoToLineClick
       end
@@ -344,37 +351,61 @@ object frmIniPrevMain: TfrmIniPrevMain
         Caption = '-'
       end
       object mnuEditCopyToTrans: TMenuItem
-        Caption = 'Copy the contents of the main line into the translation line'
+        Caption = '&Copy the contents of the main line into the translation line'
         ShortCut = 32835
         OnClick = mnuEditCopyToTransClick
       end
     end
     object mnuView: TMenuItem
-      Caption = 'View'
+      Caption = '&View'
       object mnuViewShowTranslated: TMenuItem
         Caption = 'Show translated'
         Checked = True
         OnClick = mnuViewShowTranslatedClick
       end
+      object mnuViewShowUntranslated: TMenuItem
+        Caption = 'Show untranslated'
+        Checked = True
+        OnClick = mnuViewShowUntranslatedClick
+      end
     end
     object mnuMisc: TMenuItem
-      Caption = 'Misc'
+      Caption = '&Misc'
       object mnuMiscSettings: TMenuItem
-        Caption = 'Settings'
+        Caption = '&Settings'
         OnClick = mnuMiscSettingsClick
       end
+      object mnuMiscVocabulary: TMenuItem
+        Caption = '&Vocabulary'
+        object mnuMiscVocabLoad: TMenuItem
+          Caption = 'Load vocabulary'
+          OnClick = mnuMiscVocabLoadClick
+        end
+        object mnuMiscVocabTranslate: TMenuItem
+          Caption = 'Autotranslate'
+          OnClick = mnuMiscVocabTranslateClick
+        end
+        object mnuMiscVocabUnload: TMenuItem
+          Caption = 'Unload vocabulary'
+          OnClick = mnuMiscVocabUnloadClick
+        end
+        object mnuMiscVocabMan: TMenuItem
+          Caption = 'Manage vocabularies'
+          OnClick = mnuMiscVocabManClick
+        end
+      end
       object mnuMiscAddNewStrings: TMenuItem
-        Caption = 'Add new strings to multiple translations'
+        Caption = 'Add new strings to &multiple translations'
         OnClick = mnuMiscAddNewStringsClick
       end
       object mnuMiscAbout: TMenuItem
-        Caption = 'About'
+        Caption = '&About'
         OnClick = mnuMiscAboutClick
       end
     end
   end
   object odSingleFile: TOpenDialog
-    Options = [ofNoReadOnlyReturn, ofEnableSizing, ofViewDetail, ofAutoPreview]
+    Options = [ofOverwritePrompt, ofPathMustExist, ofNoReadOnlyReturn, ofEnableSizing, ofForceShowHidden, ofViewDetail, ofAutoPreview]
     left = 72
   end
   object sdSingleFile: TSaveDialog
@@ -390,4 +421,4 @@ object frmIniPrevMain: TfrmIniPrevMain
     OnTimer = tmrStatusTimer
     left = 296
   end
-end
+end

@@ -82,7 +82,7 @@ begin
    for i:=0 to frmSettings.speRecent.Value-1 do
      begin //for i
        if fMenuItem[i].Visible = True
-         then RetVal:=RetVal + fMenuItem[i].Caption+'+'
+         then RetVal:=RetVal + fMenuItem[i].Caption+'*'
          else break;
      end; //next i
    Result:=RetVal;
@@ -110,14 +110,15 @@ begin
     +'RecentMain='+  AssembleRecent(frmIniPrev.mnuFileRecentMain)+ CrLf
     +'RecentTrans='+  AssembleRecent(frmIniPrev.mnuFileRecentTrans)+ CrLf
     +'RecentAux='+  AssembleRecent(frmIniPrev.mnuFileRecentAux)+ CrLf
+    +'VocabularySourcePath=' + VocabularySourcePath +CrLf
+    +'VocabularyPath=' +VocabularyPath+ CrLf
     + CrLf ; //CrLf is needed, to assure that the value will be properly read, if the settings file cannot be deleted.
  end;  //with
  try
    DeleteFile (AppendPathDelim(ProgramDirectory) + SettingsFile);
  finally
  end;
- //TODO: WriteUTF8 does not work on the next line.
- FilePut  (AppendPathDelim(ProgramDirectory) + SettingsFile,SettingsContents) ;
+ WriteUTF8(AppendPathDelim(ProgramDirectory) + SettingsFile,SettingsContents,ufUtf8);
 end;
 
 procedure CreateRecentMenu (CreationItem: array of TMenuItem; CreationLocation: TMenuItem; Count: Integer);
@@ -141,7 +142,7 @@ var
   i: integer;
   Loops: integer;
 begin
-  RecentMain:= Split(fRecentLine,#43);
+  RecentMain:= Split(fRecentLine,'*');
   if (Length(RecentMain)<=14) then Loops:= (Length(RecentMain)-1) else Loops:=14;
   with frmIniPrevMain do
   begin
@@ -191,7 +192,7 @@ begin
  begin
  try
    FileContents:=ReadUTF8(AppendPathDelim(ProgramDirectory) + SettingsFile);
-   SettingsContents:=Split(FileContents [0],CrLf);
+   SettingsContents:=Split(FileContents.UniText {[0]},CrLf);
    for i:= 0 to Length(SettingsContents)-1 do
    begin  //for
      Key:=LeftStr (SettingsContents[i],PosEx ('=',SettingsContents[i])-1) ;
@@ -210,6 +211,8 @@ begin
        'RecentMain':ExtractRecent (mnuFileRecentMain, Value );
        'RecentTrans':ExtractRecent (mnuFileRecentTrans,Value);
        'RecentAux':ExtractRecent (mnuFileRecentAux,Value);
+       'VocabularyPath':VocabularyPath:=Value;
+       'VocabularySourcePath':VocabularySourcePath:=Value;
      end;  //case
    end;  //for i
    except
@@ -230,9 +233,6 @@ ConfirmAutotranslate:= 0;
 IgnoreSections:= False;
 DebugMode:=False;
 RecentStore:=5;
-//RecentMain:='';
-//RecentTrans:='';
-//RecentAux:='';
 SaveSettings;
 end;
  SetSettings;

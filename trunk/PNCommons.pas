@@ -1,5 +1,5 @@
 {
-    ПревНар- приложение за превеждане на INI-подобни файлове./PrevNar- an application for translating INI-like files.
+    ПревНарин- приложение за превеждане на INI-подобни файлове./PrevNarin- an application for translating INI-like files.
     Възпроизводствено право/Copyright (C) 2012  СМ630
 
     This program is free software: you can redistribute it and/or modify
@@ -33,8 +33,14 @@ type
   StringArray2D = array of array of string ;
   IntegerArray1D = array of integer;
   DisplayMode= (DisplayAll=0, DisplayUntranslatedOnly= 1, DisplayFuzzyOnly= 2, DisplayUntranslatedAndFusy= 3, DisplayTranslatedOnly=4);
-  //TODO: I tried to use unumeration, but it occured that in Pascal Eum<> Integer, so the final result is odd.
-  UniFile= array [0..3] of string;
+  UniFile= record
+    UniText:string;
+    Encoding: TUniStreamTypes;
+    HasBom: boolean;
+    ANSIEnc: string;
+    NewLine: String;
+  end;
+
 
 //Public functions
 function BooleanToString (aBoolean:Boolean):String;
@@ -44,14 +50,20 @@ function Join(const aStringArray:StringArray1D; const Separator: string=''):Stri
 function Occurs(str, separator: string): integer;
 function Mid (AText:string; AStart :Integer; ACount:Integer=-1 ):string;
 function GetBom(StartString: string):Integer;
-procedure FilePut(FileName: string; StringToWrite: string; StartPosition: integer=0);
 function ReadUTF8 (FileName:String; ForcedEncoding:TUniStreamTypes=ufUndefined): UniFile;
 function WriteUTF8 (FileName:String; StringToWrite: string; Encoding:TUniStreamTypes=ufUtf8; HasBOM:Boolean=True): string;
 procedure SetOS;
 function UTF8StringReplace(const S, OldPattern, NewPattern: string;  Flags: TReplaceFlags): string;
 function its (AInteger: integer): String;
 function OSVersion: integer;
+function FilePath(FullFileName: string):String;
 function RemovePath(FullFileName: string) : string;
+function LocalizeRowMultiple(aString:string; Key1:string='';Key2:string='';Key3:string='';Key4:string='';Key5:string='';Key6:string=''):string;
+function LocalizeRowCountable (String0Items:string;String1Item:string; StringMultipleItems:string;KeyNumeric:QWord; Decimals:Integer=0 ):string;
+procedure DebugLine(AString: string);
+procedure DebugArray1D(AStringArray1D: StringArray1D);
+procedure DebugArray2D(AStringArray2D: StringArray2D);
+
 
 const
   CrLf = #13 + #10;
@@ -64,11 +76,12 @@ const
   BOMUTF16BE= #254+#255;
   BOMUTF16LE= #255+#254;
   DebugLog= 'debuglog.txt';
-  SettingsFile='prevnar.ini';
+  SettingsFile='prevnarin.ini';
 var
    Charset: TUniStreamTypes = ufUtf8;     {0=UTF8; 1=ANSI; 2=UTF16(BE); 3:=UTF16(LE)}
    Slash:string = '\'; //  For Dos, Windows and ReactOS= \, for *nix = /
    HasBom:Boolean=False;
+   Vocabulary: array of array of string;
 
    {Vars adjustable trough the settings windows}
    RowSplitter : string = '=';
@@ -80,6 +93,8 @@ var
    ConfirmAutotranslate:Integer;
    DebugMode: Boolean= False;
    RecentStore: Integer= 5;
+   VocabularyPath:String;
+   VocabularySourcePath:String;
    {End of adjustable vars}
 
   {Localization strings start here}
@@ -108,6 +123,8 @@ var
   ezKey: string;
   ezDefault: string;
   ezTranslation: string;
+  ezMainFile: String;
+  ezTranslationFile: String;
   ezLanguageFiles: string;
   ezTextFiles: string;
   ezAllFiles: string;
@@ -119,10 +136,11 @@ var
   ezPerCent:String;
   ezBOM:string;
   ezNoBOM:string;
-  ezCharsetName: array [0..5{3}] of string; //TODO: To set it to 1..3 when UTF16 support is implemented.
+  ezCharsetName: array [0..5] of string;
   ezSelectMainfile: string;
   ezSelectTranslationFile: string;
   ezSelectAuxFile: String;
+  ezSelectVocabularyFile: String;
   ezSaveTranslatedFileAs: String;
   ezAnErrorOccuredWhenTryingToLoadAuxiliaryFile:String;
   ezSettings: String;
@@ -146,6 +164,9 @@ var
   ezTheChangesInYourTranslationAreNotSavedIfYouPressYesTheyWillBeLost:String;
   ezAutotranslate:String;
   ezDoYouWantToAutotranslate1to2:String;
+  ezSelectANewLineCharacterBeforeSavingTheTranslation:String;
+  ezUnloadVocabulary:String;
+  ezVocabularySaved:String;
 {Localization strings end here}
 
 implementation
@@ -205,17 +226,28 @@ begin
   Result :=RetVal;
 end;
 
+function FilePath(FullFileName: string):String;
+var
+  RetVal:String;
+  SlashPosition: Integer;
+begin
+  RetVal:=ReverseString(FullFileName);
+  SlashPosition:=PosEx(Slash,RetVal);
+  RetVal:=ReverseString(Mid(RetVal, SlashPosition));
+  Result:=RetVal;
+end;
 
 //TODO: To replace this with the Lazarus inbuild function
 function RemovePath(FullFileName: string) : string;
-  var RetVal: string;
-      SlashPosition: Integer;
+var
+   RetVal: string;
+   SlashPosition: Integer;
 begin
-     //Lazarus does not have an inbuilt function for searching backward, or at least I did not find one
-     RetVal:=ReverseString(FullFileName);
-     SlashPosition:= PosEx (Slash,RetVal) ;
-     RetVal:= ReverseString(LeftStr(RetVal, SlashPosition-1));
-     Result:= RetVal ;
+   //Lazarus does not have an inbuilt function for searching backward, or at least I did not find one
+   RetVal:=ReverseString(FullFileName);
+   SlashPosition:= PosEx (Slash,RetVal) ;
+   RetVal:= ReverseString(LeftStr(RetVal, SlashPosition-1));
+   Result:= RetVal;
 end;
 
 
@@ -462,6 +494,26 @@ begin
 end;
 
 
+//Detects the new line string (CrLf, Cr or Lf)
+function NewLineString(Str:string): string;
+var
+  RetVal: string;
+begin
+     if PosEx (CrLf, Str) <>0 then
+     begin
+       RetVal:=crlf;
+     end
+     else if PosEx (Cr , Str) <>0 then
+     begin
+       RetVal:=Cr;
+       end
+       else if PosEx (Lf , Str) <> 0 then
+       begin
+         RetVal:=Lf;
+         end;
+  Result:=RetVal ;
+end;
+
  function ReadUTF8 (FileName:String; ForcedEncoding:TUniStreamTypes=ufUndefined): UniFile ;
  var
   fCES: TCharEncStream;
@@ -480,34 +532,16 @@ begin
   begin
     fCES.ANSIEnc:=LConvEncoding.GetDefaultTextEncoding ;
   end;
-  RetVal[0]:=fces.UTF8Text;
+ RetVal.UniText:=fCES.UTF8Text ;
   //This is workaround of a bug in charencstreams
   if (fCES.UniStreamType=ufANSI) and (fces.ANSIEnc='utf8')
-    then RetVal[1]:=IntToStr(ord(ufUtf8))
-    else RetVal[1]:=IntToStr (ord(fCES.UniStreamType));
-  RetVal[2]:=BooleanToString (fCES.HasBOM);
-  RetVal[3]:=fCES.ANSIEnc;
+    then RetVal.Encoding:=ufUtf8
+    else RetVal.Encoding:=fCES.UniStreamType;
+  RetVal.HasBom:=fCES.HasBOM;
+  RetVal.ANSIEnc:=fCES.ANSIEnc;
+  RetVal.NewLine:=NewLineString (RetVal.UniText);
   Result:=RetVal;
 end;
-
-//Obsolete procedure
- procedure FilePut(FileName: string; StringToWrite: string; StartPosition: integer);
- var
-   stream: TFileStream;
- begin
-   if FileExists (UTF8ToSys(FileName)) = true then
-   begin
-     stream := TFileStream.  Create(UTF8ToSys(FileName), fmOpenWrite);
-   end
-   else
-        stream := TFileStream.Create(UTF8ToSys(FileName), fmCreate);
-   try
-     stream.Seek(StartPosition, soFromBeginning);
-     stream.WriteBuffer(Pointer(StringToWrite)^, Length(StringToWrite));
-   finally
-     stream.Free();
-   end;
- end;
 
 function WriteUTF8 (FileName:String; StringToWrite: string; Encoding:TUniStreamTypes=ufUtf8; HasBOM:Boolean=True): string;
 var
@@ -518,8 +552,104 @@ begin
    fCES.UniStreamType:= Encoding;
    fCES.HasBOM:=HasBOM;
    fCES.UTF8Text:=StringToWrite;
-   fCES.SaveToFile(FileName);
+   fCES.SaveToFile(UTF8ToSys(FileName));
 end;
+
+
+function RealToString (aReal:real; Width:Integer=0; Decimals:Integer=3):string;
+var
+  RetVal:string;
+begin
+     Str (aReal:Width:Decimals,RetVal);
+     Result:=RetVal;
+end;
+
+//Localizes a sting in the format "Localizable %1 strings %2 must %3 use %4 numbers %5 after the percent sign, instead of same letters, so the translator could change the word order"
+function LocalizeRowMultiple(aString:string; Key1:string='';Key2:string='';Key3:string='';Key4:string='';Key5:string='';Key6:string=''):string;
+var
+  RetVal:string;
+begin
+  RetVal:=aString;
+  if Key1<>'' then RetVal:=UTF8StringReplace (RetVal,'%1',Key1,[]);
+  if Key2<>'' then RetVal:=UTF8StringReplace (RetVal,'%2',Key2,[]);
+  if Key3<>'' then RetVal:=UTF8StringReplace (RetVal,'%3',Key3,[]);
+  if Key4<>'' then RetVal:=UTF8StringReplace (RetVal,'%4',Key4,[]);
+  if Key5<>'' then RetVal:=UTF8StringReplace (RetVal,'%5',Key5,[]);
+  if Key6<>'' then RetVal:=UTF8StringReplace (RetVal,'%6',Key6,[]);
+  result:=RetVal ;
+end;
+
+//This could be quite tricky- in some languages different suffixes are used, depending the last digit of the number.
+function LocalizeRowCountable (String0Items:string;String1Item:string; StringMultipleItems:string;KeyNumeric:QWord; Decimals:Integer=0 ):string;
+var
+  RetVal:string;
+begin
+if StringMultipleItems='' then StringMultipleItems:=String1Item;
+if String0Items='' then String0Items:=StringMultipleItems; //In most European languages 0 goes with plural
+case KeyNumeric of
+  0: RetVal:=UTF8StringReplace (String0Items,'%1',RealToString(KeyNumeric,0,Decimals ),[]);
+  1: RetVal:=UTF8StringReplace (String1Item,'%1',RealToString(KeyNumeric,0,Decimals ),[]);
+  else RetVal:=UTF8StringReplace (StringMultipleItems,'%1',RealToString(KeyNumeric,0,Decimals),[]) //>1 or floating point
+  end; //case
+  Result:=RetVal;
+end;
+
+
+ procedure DebugLine(AString: string);  //Appends a line to the debug log
+ var
+  FileVar: TextFile;
+  DebugFileName: String;
+ begin
+  if debugmode = true then
+  begin //if
+    DebugFileName:=UTF8ToSys(AppendPathDelim(ProgramDirectory) + debuglog);
+   AssignFile(FileVar, DebugFileName);
+   {$I+} //use exceptions
+   try
+     if FileExists (DebugFileName) then
+        Append (FileVar)
+     else
+     Rewrite(FileVar);
+     Writeln(FileVar,AString);
+     CloseFile(FileVar);
+   except
+     on E: EInOutError do
+     begin
+     // Writeln('File handling error occurred. Details: '+E.ClassName+'/'+E.Message);
+     end;
+   end; //try
+  end; //if debugmode
+ end;
+
+ procedure DebugArray1D(AStringArray1D: StringArray1D);
+ var
+  i: integer;
+ begin
+   if debugmode = true then
+   begin
+   DebugLine (crlf+'Dumping array with size ' + its(Length(AStringArray1D)));
+   for i:=0 to Length(AStringArray1D) -1 do
+   begin
+       DebugLine ('Line:' + IntToStr ( i) + tab + AStringArray1D[i] + TAB +AStringArray1D[i]);
+     end;
+   end;
+ end;
+
+ procedure DebugArray2D(AStringArray2D: StringArray2D);
+ var
+  i: integer;
+ begin
+   if debugmode = true then
+   begin
+   DebugLine (crlf+'Dumping array with size ' + its(Length(AStringArray2D)));
+   for i:=0 to Length(AStringArray2D) -1 do
+   begin
+       //TODO: This works only for a [x,2] array
+       DebugLine ('Line:' + IntToStr ( i) + tab + AStringArray2D[i,0] + TAB +AStringArray2D[i,1]);
+     end;
+   end;
+ end;
+
 
 end.
 

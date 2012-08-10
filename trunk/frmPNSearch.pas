@@ -1,5 +1,5 @@
 {
-    ПревНар- приложение за превеждане на INI-подобни файлове./PrevNar- an application for translating INI-like files.
+    ПревНарин- приложение за превеждане на INI-подобни файлове./PrevNarin- an application for translating INI-like files.
     Възпроизводствено право/Copyright (C) 2012  СМ630
 
     This program is free software: you can redistribute it and/or modify
@@ -41,7 +41,6 @@ type
     rgDirection: TRadioGroup;
     txtSoughtText: TLabeledEdit;
     procedure cbgIgnoreCharsItemClick(Sender: TObject; Index: integer);
-    procedure cmdSearchClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
   private
     { private declarations }
@@ -67,14 +66,9 @@ begin
         end; //if
 end;
 
-procedure TfrmSearch.cmdSearchClick(Sender: TObject);
-begin
-
-end;
-
 procedure TfrmSearch.FormCreate(Sender: TObject);
 begin
-  txtIgnoreChar.Left:= cbgIgnoreChars.left +   cbgIgnoreChars.Width - txtIgnoreChar.Width -5 ;
+  txtIgnoreChar.Left:= cbgIgnoreChars.left + cbgIgnoreChars.Width - txtIgnoreChar.Width -5 ;
   cbgIgnoreChars.Checked[0]:=True;
   cboSearchColumn.ItemIndex:=2;
 end;

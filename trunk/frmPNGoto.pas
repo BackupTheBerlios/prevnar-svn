@@ -1,5 +1,5 @@
 {
-    ПревНар- приложение за превеждане на INI-подобни файлове./PrevNar- an application for translating INI-like files.
+    ПревНарин- приложение за превеждане на INI-подобни файлове./PrevNarin- an application for translating INI-like files.
     Възпроизводствено право/Copyright (C) 2012  СМ630
 
     This program is free software: you can redistribute it and/or modify

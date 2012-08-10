@@ -6,7 +6,7 @@ object frmGoto: TfrmGoto
   Caption = 'Go to'
   ClientHeight = 91
   ClientWidth = 187
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.1'
   object speLineNumber: TSpinEdit
     Left = 8
     Height = 21
