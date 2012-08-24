@@ -33,6 +33,7 @@ type
 
   TfrmSettings = class(TForm)
     chkIgnoreSections: TCheckBox;
+    chkOkayAutotranslate: TCheckBox;
     cmdOkay: TButton;
     chkFillInEmpty: TCheckBox;
     cmdCancel: TButton;
@@ -48,6 +49,8 @@ type
     txtRowSplitter: TEdit;
     lblIgnoreBeginnings: TLabel;
     txtSectionCloser: TEdit;
+    procedure chkFillInEmptyChange(Sender: TObject);
+    procedure chkIgnoreSectionsChange(Sender: TObject);
     procedure cmdCancelClick(Sender: TObject);
     procedure cmdOkayClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -88,6 +91,33 @@ begin
    Result:=RetVal;
 end;
 
+function EscToString(aString: string): String;
+var
+  RetVal: string='';
+begin
+     RetVal:=aString;
+     while PosEx ('\[',RetVal) <> 0 do RetVal:=UncloseReplaceEsc(RetVal,'\[',']');
+     RetVal:=UTF8StringReplace (RetVal, '\\', '\',[rfReplaceAll]);
+     RetVal:=UTF8StringReplace (RetVal,  '\t', TAB,[rfReplaceAll]);
+     RetVal:=UTF8StringReplace (RetVal,  '\N', CrLf,[rfReplaceAll]);
+     RetVal:=UTF8StringReplace (RetVal,  '\R', Cr,[rfReplaceAll]);
+     RetVal:=UTF8StringReplace (RetVal,  '\L', Lf,[rfReplaceAll]);
+     Result:=RetVal;
+end;
+
+function StringToEsc(aString: string): String;
+var
+  RetVal: String;
+begin
+  RetVal:=UTF8StringReplace (aString, '\', '\\',[rfReplaceAll]);
+  RetVal:=UTF8StringReplace (RetVal, TAB,  '\t',[rfReplaceAll]);
+  RetVal:=UTF8StringReplace (RetVal, CrLf, '\N',[rfReplaceAll]);
+  RetVal:=UTF8StringReplace (RetVal, Cr,   '\R',[rfReplaceAll]);
+  RetVal:=UTF8StringReplace (RetVal, Lf,   '\L',[rfReplaceAll]);
+  Result:=RetVal;
+end;
+
+
 procedure SaveSettings;
 var
   SettingsContents: string='';
@@ -98,9 +128,9 @@ begin
     + 'PrevNarSettings'+ CrLf
     + 'If you edit this file in an external tool (Notepad, etc), make sure to save it as UTF8 with BOM.'+ CrLf
     + ezSettingsHeaderLocalized+ CrLf
-    +'RowSplitter=' + RowSplitter+ CrLf
-    +'SectionOpener=' + SectionOpener+ CrLf
-    +'SectionCloser=' + SectionCloser+ CrLf
+    +'RowSplitter=' + StringToEsc(RowSplitter)+ CrLf
+    +'SectionOpener=' + StringToEsc(SectionOpener)+ CrLf
+    +'SectionCloser=' + StringToEsc(SectionCloser)+ CrLf
     +'FillBlanks=' + BooleanToString (FillBlanks)+ CrLf
     +'IgnoreLines=' + UTF8StringReplace (txtIgnoreStarts.Lines.Text ,crlf,'\n',[rfIgnoreCase,rfReplaceAll])+ CrLf
     +'ConfirmAutotranslate=' + its(ConfirmAutotranslate)+CrLf
@@ -111,7 +141,8 @@ begin
     +'RecentTrans='+  AssembleRecent(frmIniPrev.mnuFileRecentTrans)+ CrLf
     +'RecentAux='+  AssembleRecent(frmIniPrev.mnuFileRecentAux)+ CrLf
     +'VocabularySourcePath=' + VocabularySourcePath +CrLf
-    +'VocabularyPath=' +VocabularyPath+ CrLf
+    +'VocabularyPath='+ VocabularyPath+ CrLf
+    +'AutotranslateOkay=' + BooleanToString(AutotranslateOkay) +CrLf
     + CrLf ; //CrLf is needed, to assure that the value will be properly read, if the settings file cannot be deleted.
  end;  //with
  try
@@ -199,9 +230,9 @@ begin
      Value:= Mid (SettingsContents[i],Length(key+'=')+1); //TODO- this 100 shall be removed somehow
      //WARNING: If the compiler returns an error on the next line, it means that your Lazarus is too old.
      case key of
-       'RowSplitter': RowSplitter := Value;
-       'SectionOpener': SectionOpener := Value;
-       'SectionCloser': SectionCloser := Value;
+       'RowSplitter':   RowSplitter := EscToString(Value);
+       'SectionOpener': SectionOpener := EscToString(Value);
+       'SectionCloser': SectionCloser := EscToString(Value);
        'FillBlanks': FillBlanks := StringToBoolean  (Mid (SettingsContents[i],Length(key+'=')+1,100));
        'IgnoreLines': IgnoreLines:= Split (mid(SettingsContents[i],Length(key+'=')+1,100),'\n');
        'ConfirmAutotranslate': ConfirmAutotranslate:= StrToInt (Value);
@@ -213,6 +244,7 @@ begin
        'RecentAux':ExtractRecent (mnuFileRecentAux,Value);
        'VocabularyPath':VocabularyPath:=Value;
        'VocabularySourcePath':VocabularySourcePath:=Value;
+       'AutotranslateOkay': AutotranslateOkay:=StringToBoolean(Value);
      end;  //case
    end;  //for i
    except
@@ -230,6 +262,7 @@ IgnoreLines[0]:='no_translate';
 IgnoreLines[1]:='\\';
 IgnoreLines[2]:=Apostrophy;
 ConfirmAutotranslate:= 0;
+AutotranslateOkay:= False;
 IgnoreSections:= False;
 DebugMode:=False;
 RecentStore:=5;
@@ -242,13 +275,14 @@ procedure GetSettings;
 begin
  with frmSettings do
  begin //with
-   RowSplitter:= txtRowSplitter.Text;
-   SectionOpener:= txtSectionOpener.text;
-   SectionCloser:= txtSectionCloser.text;
+   RowSplitter:= EscToString(txtRowSplitter.Text);
+   SectionOpener:= EscToString(txtSectionOpener.Text);
+   SectionCloser:= EscToString(txtSectionCloser.Text);
    FillBlanks:= chkFillInEmpty.Checked;
    IgnoreLines:= Split(txtIgnoreStarts.Lines.Text ,CrLf);
    ConfirmAutotranslate:=cboConfirmAutotranslate.ItemIndex;
    RecentStore:=speRecent.Value;
+   AutotranslateOkay:=chkOkayAutotranslate.Checked;
   // IgnoreSections:=chkFillInEmpty.Checked;
  end; //with
 end;
@@ -257,14 +291,15 @@ procedure SetSettings;
 begin
   with frmSettings do
   begin //with
-    txtRowSplitter.Text :=RowSplitter;
-    txtSectionOpener.Text:= SectionOpener;
-    txtSectionCloser.Text:= SectionCloser;
+    txtRowSplitter.Text:=   StringToEsc(RowSplitter);
+    txtSectionOpener.Text:= StringToEsc(SectionOpener);
+    txtSectionCloser.Text:= StringToEsc(SectionCloser);
     chkFillInEmpty.Checked := FillBlanks;
     txtIgnoreStarts.Lines.Text:= Join(IgnoreLines,CrLf);
     cboConfirmAutotranslate.ItemIndex:=ConfirmAutotranslate;
     chkIgnoreSections.Checked:=IgnoreSections;
     speRecent.Value:=RecentStore;
+    chkOkayAutotranslate.Checked:= AutotranslateOkay;
   end; //with
 end;
 
@@ -275,12 +310,22 @@ end;
 
 procedure TfrmSettings.cmdOkayClick(Sender: TObject);
 begin
-  frmSettings.Hide  ;
+  frmSettings.Hide;
 end;
 
 procedure TfrmSettings.cmdCancelClick(Sender: TObject);
 begin
   frmSettings.Hide  ;
+end;
+
+procedure TfrmSettings.chkFillInEmptyChange(Sender: TObject);
+begin
+
+end;
+
+procedure TfrmSettings.chkIgnoreSectionsChange(Sender: TObject);
+begin
+
 end;
 
 

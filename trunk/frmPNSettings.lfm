@@ -1,7 +1,7 @@
 object frmSettings: TfrmSettings
-  Left = 374
+  Left = 323
   Height = 332
-  Top = 105
+  Top = 109
   Width = 514
   BorderStyle = bsSingle
   Caption = 'Settings'
@@ -17,6 +17,8 @@ object frmSettings: TfrmSettings
     Width = 98
     Caption = 'Fill in empty lines'
     Checked = True
+    ParentShowHint = False
+    ShowHint = True
     State = cbChecked
     TabOrder = 0
   end
@@ -51,8 +53,11 @@ object frmSettings: TfrmSettings
   object txtRowSplitter: TEdit
     Left = 136
     Height = 21
+    Hint = '\\ - backslash'#13#10'\t - tab'#13#10'\N- CrLf'#13#10'\R- Cr'#13#10'\L- Lf'#13#10'\[..]- decimal ascii value'#13#10'\[$..]- hex ascii value'
     Top = 24
     Width = 48
+    ParentShowHint = False
+    ShowHint = True
     TabOrder = 3
     Text = '='
   end
@@ -67,8 +72,11 @@ object frmSettings: TfrmSettings
   object txtSectionOpener: TEdit
     Left = 136
     Height = 21
+    Hint = '\\ - backslash'#13#10'\t - tab'#13#10'\N- CrLf'#13#10'\R- Cr'#13#10'\L- Lf'#13#10'\[..]- decimal ascii value'#13#10'\[$..]- hex ascii value'
     Top = 57
     Width = 48
+    ParentShowHint = False
+    ShowHint = True
     TabOrder = 4
     Text = '['
   end
@@ -83,8 +91,11 @@ object frmSettings: TfrmSettings
   object txtSectionCloser: TEdit
     Left = 136
     Height = 21
+    Hint = '\\ - backslash'#13#10'\t - tab'#13#10'\N- CrLf'#13#10'\R- Cr'#13#10'\L- Lf'#13#10'\[..]- decimal ascii value'#13#10'\[$..]- hex ascii value'
     Top = 89
     Width = 48
+    ParentShowHint = False
+    ShowHint = True
     TabOrder = 5
     Text = ']'
   end
@@ -130,17 +141,18 @@ object frmSettings: TfrmSettings
   object chkIgnoreSections: TCheckBox
     Left = 8
     Height = 17
-    Top = 232
+    Top = 256
     Width = 92
     Caption = 'Ignore sections'
+    OnChange = chkIgnoreSectionsChange
     TabOrder = 8
   end
   object lblRecent: TLabel
     Left = 216
     Height = 14
     Top = 31
-    Width = 120
-    Caption = 'Recent file to remember:'
+    Width = 125
+    Caption = 'Recent files to remember:'
     ParentColor = False
   end
   object speRecent: TSpinEdit
@@ -151,5 +163,16 @@ object frmSettings: TfrmSettings
     MaxValue = 15
     TabOrder = 9
     Value = 15
+  end
+  object chkOkayAutotranslate: TCheckBox
+    Left = 8
+    Height = 17
+    Hint = 'After editing a line and pressing Okay, the application searches untranslated lines with the same main text and autoranslates them.'
+    Top = 232
+    Width = 214
+    Caption = 'Autotranslate after closing the edit fields'
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 10
   end
 end

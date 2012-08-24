@@ -121,7 +121,6 @@ type
     procedure mnuEditFindClick(Sender: TObject);
     procedure mnuEditNextUntranslatedClick(Sender: TObject);
     procedure mnuEditPreviousUntranslatedClick(Sender: TObject);
-    procedure mnuFileOpenMainClick(Sender: TObject);
     procedure mnuFileSaveAsClick(Sender: TObject);
     procedure mnuFileSaveTranslationClick(Sender: TObject);
     procedure mnuFileTransFileClick(Sender: TObject);
@@ -217,15 +216,6 @@ begin
      Result:= RetVal ;
 end;
 
-
-//Returns the text between Opener and Closer. Example- unclose ([section], '[',']') returns „section“.
-function Unclose (AString:String; Opener: String; Closer: String) : String;
-var
-    RetVal: String;
-begin
-    RetVal:= Mid (AString,PosEx (Opener,AString)+1, PosEx(Closer,AString,PosEx (Opener,AString)+Length(opener))-PosEx (Opener,AString)-1);
-    Result:=RetVal;
-end;
 
 //Calculates the % value of the portion, relative to the whole part
 function PerCent (WholePart: Double; Portion:Double): Double;
@@ -529,7 +519,7 @@ begin
         sgStringList.Cells [colSection, RowNumber]:= SectionName;
         sgStringList.Cells [colRow ,RowNumber]:= IntToStr (RowNumber);
         sgStringList.Cells [colKey,RowNumber]:= LeftStr(MainLine,SplitterLocation-1);
-        sgStringList.Cells [colMain,RowNumber ]:= Mid (MainLine,SplitterLocation+1, Length(MainLine)-SplitterLocation );
+        sgStringList.Cells [colMain,RowNumber ]:= Mid(MainLine,SplitterLocation+Length(RowSplitter), Length(MainLine)-SplitterLocation-Length(RowSplitter)+1);
         RowNumber:=RowNumber+1;
        end; //if
     end; //for i
@@ -553,11 +543,6 @@ begin
   end; //with
 end;
 
-procedure TfrmIniPrevMain.mnuFileOpenMainClick(Sender: TObject);
-begin
-     if TMenuItem(Sender).tag <> 0 then  ShowMessage (its(TMenuItem (Sender).Tag)) ;
-end;
-
 procedure TfrmIniPrevMain.mnuFileRecentMainClick  (Sender: TObject);
 begin
    OpenMainFile(mnuFileRecentMain[TMenuItem (Sender).Tag].Caption);
@@ -565,7 +550,7 @@ end;
 
 procedure TfrmIniPrevMain.mnuFileOpenMainBrowseClick(Sender: TObject);
 begin
-   OpenMainFile('',ufUndefined,True);
+  OpenMainFile('',ufUndefined,True);
 end;
 
 procedure TfrmIniPrevMain.lblCharsetDefaultClick(Sender: TObject);
@@ -636,8 +621,9 @@ begin
               and ((CompareText (SectionName,sgStringList.Cells[colSection,j])=0) or (Length(SectionName)= 0) or (IgnoreSections=True))
               then
               begin //if
-                SplitterLocation:= PosEx(RowSplitter,ContentStrings[i]);
-                AuxStrings [j,0]:=  Mid (ContentStrings[i],SplitterLocation+1, Length(ContentStrings[i])-SplitterLocation ) ; //The KEY value is not usable, since there might be equal keys in different sections
+                SplitterLocation:=PosEx(RowSplitter,ContentStrings[i]);
+//                AuxStrings [j,0]:=Mid(ContentStrings[i],SplitterLocation+1, Length(ContentStrings[i])-SplitterLocation ) ; //The KEY value is not usable, since there might be equal keys in different sections
+                AuxStrings [j,0]:=Mid(ContentStrings[i],SplitterLocation+Length(RowSplitter){+1}, Length(ContentStrings[i])-SplitterLocation-Length(RowSplitter)+1);
                 Break;
               end  //if
            end //for j    }
@@ -709,7 +695,8 @@ with frmIniPrevMain do
 begin //with
 if lblNewLineStringTranslation.Caption = '???' then
   begin  //if
-    ShowMessage (ezSelectANewLineCharacterBeforeSavingTheTranslation);
+      QuestionDlg(ezSelectANewLineCharacterBeforeSavingTheTranslation,ezSelectANewLineCharacterBeforeSavingTheTranslation,
+      mtCustom, [mrOK,ezOkay],'');
     Exit;
   end;
 if SaveInProgress = false then
@@ -719,7 +706,7 @@ begin //if
   begin //for
       if CompareText(RightStr(TranslationStrings [i,0],1), RowSplitter) = 0 then //Checks if the row is empty
       begin //if
-        if frmSettings.chkFillInEmpty.Checked  = True
+        if FillBlanks{frmSettings.chkFillInEmpty.Checked}  = True
         then FullStrings:= FullStrings+sgStringList.cells[colKey,StrToInt (TranslationStrings[i,1])]+ RowSplitter+  sgStringList.cells[colMain,strtoint(TranslationStrings[i,1])]+NewLineTranslation;
       end
     else
@@ -941,7 +928,7 @@ with frmIniPrevMain do
     for i:=0 to Occurs(TranslationFileContents,NewLine)-1 do
     begin //for i
       NextNewLine:= PosEx (NewLine, TranslationFileContents,CurrentNewLine)+length(NewLine);
-      TranslationStrings[i,0]:= MidStr (TranslationFileContents,CurrentNewLine,NextNewLine- CurrentNewLine-length(NewLine));
+      TranslationStrings[i,0]:= MidStr (TranslationFileContents,CurrentNewLine,NextNewLine- CurrentNewLine-Length(NewLine));
       CurrentNewLine:= NextNewLine;
         if PosEx (RowSplitter,TranslationStrings[i,0])<> 0 then
         begin //if
@@ -950,7 +937,7 @@ with frmIniPrevMain do
              begin //for j
                 if  CompareText (key,sgStringList.Cells[colKey,j])=0 then
                 begin //if
-                  sgStringList.Cells[colTranslation,j]:= Mid (TranslationStrings[i,0],Length(key+RowSplitter)+1,100);
+                  sgStringList.Cells[colTranslation,j]:= Mid (TranslationStrings[i,0],Length(Key+RowSplitter)+1,100);
                   TranslationStrings [i,1]:= sgStringList.Cells[colRow,j]; //The KEY value is not usable, since there might be equal keys in different sections
                   break;
                 end  //if
@@ -1129,10 +1116,10 @@ begin
  sgStringList.Enabled :=False;
   for i:=1 to sgStringList.RowCount-1 do
   begin //for i
-    if (Length(sgStringList.Cells [colTranslation,i])=0) or (UTF8CompareText(sgStringList.Cells [colTranslation,i],sgStringList.Cells [colMain,i])=0) then
+    if (Length(sgStringList.Cells [colTranslation,i])=0) or (CompareText(sgStringList.Cells [colTranslation,i],sgStringList.Cells [colMain,i])=0) then
     for j:=0 to Length(Vocabulary)-1 do
     begin //for j
-      if UTF8CompareText(Vocabulary[j,0],sgStringList.Cells[colMain,i])=0 then
+      if CompareText(Vocabulary[j,0],sgStringList.Cells[colMain,i])=0 then
       begin //if
         sgStringList.Cells[colTranslation,i]:= Vocabulary[j,1] ;
         //TranslationStrings[{TranslatedLines}i,0]:=  sgStringList.Cells[colKey,i] + RowSplitter+ Vocabulary[j,1];
@@ -1255,7 +1242,7 @@ begin
    SetLength(SgSlBG,1 );
    frmIniPrevMain.mnuViewShowTranslated.Checked:=True;
    //If you get an error on goDontScrollPartCell, then your version of Lazarus is too old. You need at 0.9.31 or later.
-   sgStringList.Options:=  [goFixedVertLine,goFixedHorzLine,goVertLine,goHorzLine,goColSizing,goRowSelect,goDblClickAutoSize,goDontScrollPartCell] ;
+   sgStringList.Options:=  [goFixedVertLine,goFixedHorzLine,goVertLine,goHorzLine,goColSizing,goRowSelect,goDblClickAutoSize{,goDontScrollPartCell}] ;
    if DebugMode= true then
    begin
      try  DeleteFile (UTF8ToSys(AppendPathDelim(ProgramDirectory) + debuglog));
@@ -1312,32 +1299,51 @@ begin
   sgStringList.Columns[4].Title.Caption:= ezTranslation;
   lblStatus.Caption :='' ;
   lblStatusSecondary.Caption :='' ;
-
  end;
+
+procedure ReplaceEntry(Row: integer );
+var
+    i:integer;
+begin
+  with frmIniPrevMain do
+  begin //with
+    sgStringList.Cells [colMain,Row]:= txtMDefault.Text;
+    sgStringList.Cells [colTranslation,Row]:=txtMTranslation.Text;
+    SetCellBackground(Row,clWhite);
+    for i:= 0 to Length(TranslationStrings) do
+    begin //for i
+      if TranslationStrings[i,1]= sgStringList.Cells[colRow,Row] then
+        begin //if
+          TranslationStrings[i,0]:= sgStringList.Cells[colKey,StrToInt(TranslationStrings[i,1])]  + RowSplitter + sgStringList.Cells[colTranslation,Row];
+          break;
+        end; //if
+    end; //for i
+  end; //with
+end;
 
 procedure OkayClicked();
 var
   i:integer;
  begin
- with frmIniPrevMain do
- begin //with
-  SetEditWidgets(False);
-  sgStringList.Cells [colMain,sgStringList.Selection.Top]:= txtMDefault.Text;
-  sgStringList.Cells [colTranslation,sgStringList.Selection.Top]:=txtMTranslation.Text;
-  SetCellBackground(sgStringList.Selection.Top,clWhite);
-  for i:= 0 to Length(TranslationStrings) do
-  begin //for i
-    if TranslationStrings[i,1]= sgStringList.Cells[colRow,sgStringList.Selection.Top] then
-      begin //if
-        TranslationStrings[i,0]:= sgStringList.Cells[colKey,StrToInt(TranslationStrings[i,1])]  + RowSplitter + sgStringList.Cells[colTranslation,sgStringList.Selection.Top];
-        break;
-      end; //if
-  end; //for i
-  if Unsaved = False then frmIniPrevMain.Caption:= frmIniPrevMain.Caption + '*';
-  Unsaved:=True;
-  mnuFileSaveTranslation.Enabled:= true ;
-  PrintStatus();
- end;  //with
+   with frmIniPrevMain do
+   begin //with
+      SetEditWidgets(False);
+      ReplaceEntry (sgStringList.Selection.Top);
+      if AutotranslateOkay=True then
+      for i:= 1 to sgStringList.RowCount-1 do
+      begin //for i
+        if ((Length(sgStringList.Cells [colTranslation,i]) = 0) or (UTF8CompareText(sgStringList.Cells[colTranslation,i],sgStringList.Cells [colMain,i])=0))
+        and (UTF8CompareText(sgStringList.Cells [colMain,i],txtMDefault.Text)=0) then
+        begin //if
+          ReplaceEntry (i);
+        end; //if
+      end; //for i
+
+      if Unsaved = False then frmIniPrevMain.Caption:= frmIniPrevMain.Caption + '*';
+      Unsaved:=True;
+      mnuFileSaveTranslation.Enabled:=True;
+      PrintStatus();
+   end;  //with
 end;
 
 procedure TfrmIniPrevMain.txtMTranslationKeyDown(Sender: TObject;

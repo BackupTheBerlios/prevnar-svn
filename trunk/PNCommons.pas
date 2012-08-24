@@ -60,6 +60,8 @@ function FilePath(FullFileName: string):String;
 function RemovePath(FullFileName: string) : string;
 function LocalizeRowMultiple(aString:string; Key1:string='';Key2:string='';Key3:string='';Key4:string='';Key5:string='';Key6:string=''):string;
 function LocalizeRowCountable (String0Items:string;String1Item:string; StringMultipleItems:string;KeyNumeric:QWord; Decimals:Integer=0 ):string;
+function Unclose (AString:String; Opener: String; Closer: String) : String;
+function UncloseReplaceEsc (AString:String; Opener: String; Closer: String) : String;
 procedure DebugLine(AString: string);
 procedure DebugArray1D(AStringArray1D: StringArray1D);
 procedure DebugArray2D(AStringArray2D: StringArray2D);
@@ -95,6 +97,7 @@ var
    RecentStore: Integer= 5;
    VocabularyPath:String;
    VocabularySourcePath:String;
+   AutotranslateOkay:Boolean=False ;
    {End of adjustable vars}
 
   {Localization strings start here}
@@ -321,12 +324,12 @@ const
   end;
   //
   procedure CopyNextChar;
-  begin
-    NeedSize(outpos+src.charWidths[lpTextPos]);
-    move(osrc.rawData[lpTextPos],result[outpos+1],osrc.charWidths[lpTextPos]);
-    inc(outpos);
-    inc(lpTextPos);
-  end;
+   begin
+     NeedSize(outpos+src.charWidths[lpTextPos]);
+     move(osrc.rawData[lpTextPos],result[outpos+1],osrc.charWidths[lpTextPos]);
+     inc(outpos,osrc.charWidths[lpTextPos]);
+     inc(lpTextPos);
+   end;
   //
   function AllEqual:boolean;
   var
@@ -576,7 +579,7 @@ begin
   if Key4<>'' then RetVal:=UTF8StringReplace (RetVal,'%4',Key4,[]);
   if Key5<>'' then RetVal:=UTF8StringReplace (RetVal,'%5',Key5,[]);
   if Key6<>'' then RetVal:=UTF8StringReplace (RetVal,'%6',Key6,[]);
-  result:=RetVal ;
+  Result:=RetVal ;
 end;
 
 //This could be quite tricky- in some languages different suffixes are used, depending the last digit of the number.
@@ -594,6 +597,37 @@ case KeyNumeric of
   Result:=RetVal;
 end;
 
+
+//Returns the text between Opener and Closer. Example- unclose ([section], '[',']') returns „section“.
+function Unclose (AString:String; Opener: String; Closer: String) : String;
+var
+  TokenStart: integer;
+  TokenLength: integer;
+begin
+  TokenStart:= PosEx(Opener,AString)+ Length(Opener);
+  TokenLength:= PosEx(Closer,AString, TokenStart+1)- TokenStart;
+  Result:=  mid(AString,TokenStart,TokenLength);
+end;
+
+function UncloseReplaceEsc (AString:String; Opener: String; Closer: String) : String;
+var
+  EscChar: String='';
+  TokenStart: integer;
+  TokenLength: integer;
+begin
+TokenStart:= PosEx(Opener,AString);
+if TokenStart<>0 then
+begin
+  TokenStart:= TokenStart+ Length(Opener);
+  TokenLength:= PosEx(Closer,AString, TokenStart+1)- TokenStart;
+   try
+    EscChar:= chr(StrToInt(mid(AString,TokenStart,TokenLength))) ;
+   Except
+     EscChar:='';
+   end;
+end;
+Result:= LeftStr(AString,TokenStart- Length(Opener)-1)+ EscChar+ Mid (AString,TokenStart+TokenLength+Length(Closer));
+end;
 
  procedure DebugLine(AString: string);  //Appends a line to the debug log
  var
