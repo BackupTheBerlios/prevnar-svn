@@ -110,7 +110,7 @@ object frmIniPrevMain: TfrmIniPrevMain
     OnClick = lblNewLineStringTranslationClick
   end
   object lblStatus: TLabel
-    Left = 224
+    Left = 230
     Height = 16
     Top = 382
     Width = 424
@@ -177,7 +177,7 @@ object frmIniPrevMain: TfrmIniPrevMain
     ShowHint = True
   end
   object lblStatusSecondary: TLabel
-    Left = 328
+    Left = 340
     Height = 14
     Top = 408
     Width = 32
@@ -185,7 +185,7 @@ object frmIniPrevMain: TfrmIniPrevMain
     ParentColor = False
   end
   object lblArrow: TLabel
-    Left = 200
+    Left = 210
     Height = 14
     Top = 408
     Width = 13
@@ -193,7 +193,7 @@ object frmIniPrevMain: TfrmIniPrevMain
     ParentColor = False
   end
   object lblCharsetTranslationWrite: TLabel
-    Left = 224
+    Left = 230
     Height = 14
     Hint = 'Encoding, used when writing the file. Click on it to change it.'
     Top = 408
@@ -205,7 +205,7 @@ object frmIniPrevMain: TfrmIniPrevMain
     OnClick = lblCharsetTranslationWriteClick
   end
   object lblBOMTranslationWrite: TLabel
-    Left = 280
+    Left = 290
     Height = 14
     Hint = 'Write the file with or without BOM. Click to toggle.'
     Top = 408

@@ -334,7 +334,7 @@ begin //with
   sgStringList.Top:= 10;
   sgStringList.Height:= frmIniPrevMain.Height - 80;
   sgStringList.Width:= frmIniPrevMain.Width - 20;
-  sgStringList.Columns[colRow].Width:= 30;
+  sgStringList.Columns[colRow].Width:= 35;
   sgStringList.Columns[colSection].Width:= 50;
   sgStringList.Columns[colKey].Width:= 30;
   sgStringList.Columns[colMain].Width:=  trunc((frmIniPrevMain.sgStringList.Width - 90) / 2) - 20;
@@ -706,8 +706,8 @@ begin //if
   begin //for
       if CompareText(RightStr(TranslationStrings [i,0],1), RowSplitter) = 0 then //Checks if the row is empty
       begin //if
-        if FillBlanks{frmSettings.chkFillInEmpty.Checked}  = True
-        then FullStrings:= FullStrings+sgStringList.cells[colKey,StrToInt (TranslationStrings[i,1])]+ RowSplitter+  sgStringList.cells[colMain,strtoint(TranslationStrings[i,1])]+NewLineTranslation;
+        if (FillBlanks = True) and (Length(TranslationStrings [i,1]) <> 0) //Handles cases when the main language string is empty
+          then FullStrings:= FullStrings+sgStringList.cells[colKey,StrToInt (TranslationStrings[i,1])]+ RowSplitter+  sgStringList.cells[colMain,strtoint(TranslationStrings[i,1])]+NewLineTranslation
       end
     else
        FullStrings:= FullStrings + TranslationStrings [i,0] + NewLineTranslation

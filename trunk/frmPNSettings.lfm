@@ -119,7 +119,7 @@ object frmSettings: TfrmSettings
     Left = 8
     Height = 21
     Top = 298
-    Width = 176
+    Width = 200
     ItemHeight = 13
     ItemIndex = 0
     Items.Strings = (
@@ -148,7 +148,7 @@ object frmSettings: TfrmSettings
     TabOrder = 8
   end
   object lblRecent: TLabel
-    Left = 216
+    Left = 256
     Height = 14
     Top = 31
     Width = 125
@@ -156,7 +156,7 @@ object frmSettings: TfrmSettings
     ParentColor = False
   end
   object speRecent: TSpinEdit
-    Left = 352
+    Left = 456
     Height = 21
     Top = 24
     Width = 50
