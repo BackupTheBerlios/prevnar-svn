@@ -144,7 +144,6 @@ object frmSettings: TfrmSettings
     Top = 256
     Width = 92
     Caption = 'Ignore sections'
-    OnChange = chkIgnoreSectionsChange
     TabOrder = 8
   end
   object lblRecent: TLabel

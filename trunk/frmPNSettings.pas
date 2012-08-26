@@ -49,8 +49,6 @@ type
     txtRowSplitter: TEdit;
     lblIgnoreBeginnings: TLabel;
     txtSectionCloser: TEdit;
-    procedure chkFillInEmptyChange(Sender: TObject);
-    procedure chkIgnoreSectionsChange(Sender: TObject);
     procedure cmdCancelClick(Sender: TObject);
     procedure cmdOkayClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -124,7 +122,7 @@ var
 begin
  with frmSettings do
  begin //with
-  SettingsContents:= BOMUTF8 //Linux throws an exception on this line, Windows does not ?!
+  SettingsContents:=BOMUTF8 //Linux throws an exception on this line, Windows does not ?!
     + 'PrevNarSettings'+ CrLf
     + 'If you edit this file in an external tool (Notepad, etc), make sure to save it as UTF8 with BOM.'+ CrLf
     + ezSettingsHeaderLocalized+ CrLf
@@ -173,8 +171,8 @@ var
   i: integer;
   Loops: integer;
 begin
-  RecentMain:= Split(fRecentLine,'*');
-  if (Length(RecentMain)<=14) then Loops:= (Length(RecentMain)-1) else Loops:=14;
+  RecentMain:=Split(fRecentLine,'*');
+  if (Length(RecentMain)<=14) then Loops:=(Length(RecentMain)-1) else Loops:=14;
   with frmIniPrevMain do
   begin
     for i:=0 to Loops do
@@ -224,21 +222,21 @@ begin
  try
    FileContents:=ReadUTF8(AppendPathDelim(ProgramDirectory) + SettingsFile);
    SettingsContents:=Split(FileContents.UniText {[0]},CrLf);
-   for i:= 0 to Length(SettingsContents)-1 do
+   for i:=0 to Length(SettingsContents)-1 do
    begin  //for
      Key:=LeftStr (SettingsContents[i],PosEx ('=',SettingsContents[i])-1) ;
-     Value:= Mid (SettingsContents[i],Length(key+'=')+1); //TODO- this 100 shall be removed somehow
+     Value:=Mid (SettingsContents[i],Length(key+'=')+1); //TODO- this 100 shall be removed somehow
      //WARNING: If the compiler returns an error on the next line, it means that your Lazarus is too old.
      case key of
-       'RowSplitter':   RowSplitter := EscToString(Value);
-       'SectionOpener': SectionOpener := EscToString(Value);
-       'SectionCloser': SectionCloser := EscToString(Value);
-       'FillBlanks': FillBlanks := StringToBoolean  (Mid (SettingsContents[i],Length(key+'=')+1,100));
-       'IgnoreLines': IgnoreLines:= Split (mid(SettingsContents[i],Length(key+'=')+1,100),'\n');
-       'ConfirmAutotranslate': ConfirmAutotranslate:= StrToInt (Value);
-       'IgnoreSections': IgnoreSections:= StringToBoolean(Value);
+       'RowSplitter':   RowSplitter:=EscToString(Value);
+       'SectionOpener': SectionOpener:=EscToString(Value);
+       'SectionCloser': SectionCloser:=EscToString(Value);
+       'FillBlanks': FillBlanks:=StringToBoolean  (Mid (SettingsContents[i],Length(key+'=')+1,100));
+       'IgnoreLines': IgnoreLines:=Split (mid(SettingsContents[i],Length(key+'=')+1,100),'\n');
+       'ConfirmAutotranslate': ConfirmAutotranslate:=StrToInt (Value);
+       'IgnoreSections': IgnoreSections:=StringToBoolean(Value);
        'DebugMode': DebugMode:=StringToBoolean(Value);
-       'RecentStore': RecentStore:= StrToInt(Value);
+       'RecentStore': RecentStore:=StrToInt(Value);
        'RecentMain':ExtractRecent (mnuFileRecentMain, Value );
        'RecentTrans':ExtractRecent (mnuFileRecentTrans,Value);
        'RecentAux':ExtractRecent (mnuFileRecentAux,Value);
@@ -253,17 +251,17 @@ begin
  end
 else
 begin
-RowSplitter := '=';
-SectionOpener := '[';
-SectionCloser := ']';
-FillBlanks := True ;
+RowSplitter:='=';
+SectionOpener:='[';
+SectionCloser:=']';
+FillBlanks:=True ;
 SetLength(IgnoreLines,3);
 IgnoreLines[0]:='no_translate';
 IgnoreLines[1]:='\\';
 IgnoreLines[2]:=Apostrophy;
-ConfirmAutotranslate:= 0;
-AutotranslateOkay:= False;
-IgnoreSections:= False;
+ConfirmAutotranslate:=0;
+AutotranslateOkay:=False;
+IgnoreSections:=False;
 DebugMode:=False;
 RecentStore:=5;
 SaveSettings;
@@ -275,15 +273,15 @@ procedure GetSettings;
 begin
  with frmSettings do
  begin //with
-   RowSplitter:= EscToString(txtRowSplitter.Text);
-   SectionOpener:= EscToString(txtSectionOpener.Text);
-   SectionCloser:= EscToString(txtSectionCloser.Text);
-   FillBlanks:= chkFillInEmpty.Checked;
-   IgnoreLines:= Split(txtIgnoreStarts.Lines.Text ,CrLf);
+   RowSplitter:=EscToString(txtRowSplitter.Text);
+   SectionOpener:=EscToString(txtSectionOpener.Text);
+   SectionCloser:=EscToString(txtSectionCloser.Text);
+   FillBlanks:=chkFillInEmpty.Checked;
+   IgnoreLines:=Split(txtIgnoreStarts.Lines.Text ,CrLf);
    ConfirmAutotranslate:=cboConfirmAutotranslate.ItemIndex;
    RecentStore:=speRecent.Value;
    AutotranslateOkay:=chkOkayAutotranslate.Checked;
-  // IgnoreSections:=chkFillInEmpty.Checked;
+   IgnoreSections:=chkIgnoreSections.Checked;
  end; //with
 end;
 
@@ -291,15 +289,16 @@ procedure SetSettings;
 begin
   with frmSettings do
   begin //with
-    txtRowSplitter.Text:=   StringToEsc(RowSplitter);
-    txtSectionOpener.Text:= StringToEsc(SectionOpener);
-    txtSectionCloser.Text:= StringToEsc(SectionCloser);
-    chkFillInEmpty.Checked := FillBlanks;
-    txtIgnoreStarts.Lines.Text:= Join(IgnoreLines,CrLf);
+    txtRowSplitter.Text:=StringToEsc(RowSplitter);
+    txtSectionOpener.Text:=StringToEsc(SectionOpener);
+    txtSectionCloser.Text:=StringToEsc(SectionCloser);
+    chkFillInEmpty.Checked:=FillBlanks;
+    txtIgnoreStarts.Lines.Text:=Join(IgnoreLines,CrLf);
     cboConfirmAutotranslate.ItemIndex:=ConfirmAutotranslate;
     chkIgnoreSections.Checked:=IgnoreSections;
     speRecent.Value:=RecentStore;
-    chkOkayAutotranslate.Checked:= AutotranslateOkay;
+    chkOkayAutotranslate.Checked:=AutotranslateOkay;
+    chkIgnoreSections.Checked:=IgnoreSections;
   end; //with
 end;
 
@@ -317,17 +316,6 @@ procedure TfrmSettings.cmdCancelClick(Sender: TObject);
 begin
   frmSettings.Hide  ;
 end;
-
-procedure TfrmSettings.chkFillInEmptyChange(Sender: TObject);
-begin
-
-end;
-
-procedure TfrmSettings.chkIgnoreSectionsChange(Sender: TObject);
-begin
-
-end;
-
 
 end.
 

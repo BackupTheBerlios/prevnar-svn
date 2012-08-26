@@ -97,7 +97,7 @@ var
    RecentStore: Integer= 5;
    VocabularyPath:String;
    VocabularySourcePath:String;
-   AutotranslateOkay:Boolean=False ;
+   AutotranslateOkay:Boolean=False;
    {End of adjustable vars}
 
   {Localization strings start here}
@@ -605,8 +605,13 @@ var
   TokenLength: integer;
 begin
   TokenStart:= PosEx(Opener,AString)+ Length(Opener);
-  TokenLength:= PosEx(Closer,AString, TokenStart+1)- TokenStart;
-  Result:=  mid(AString,TokenStart,TokenLength);
+  if Length(Closer)<>0 then
+  begin
+    TokenLength:= PosEx(Closer,AString, TokenStart+1)- TokenStart;
+    Result:=  Mid(AString,TokenStart,TokenLength);
+  end
+  else
+     Result:= Mid(AString,TokenStart);
 end;
 
 function UncloseReplaceEsc (AString:String; Opener: String; Closer: String) : String;

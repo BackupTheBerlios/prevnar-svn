@@ -24,7 +24,7 @@ object frmIniPrevMain: TfrmIniPrevMain
     FixedCols = 0
     HeaderHotZones = []
     HeaderPushZones = []
-    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goRowSelect, goDblClickAutoSize, goSmoothScroll]
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goColSizing, goRowSelect, goDblClickAutoSize, goDontScrollPartCell]
     ParentBiDiMode = False
     RowCount = 1
     ScrollBars = ssAutoVertical
@@ -32,6 +32,7 @@ object frmIniPrevMain: TfrmIniPrevMain
     OnDblClick = sgStringListDblClick
     OnKeyPress = sgStringListKeyPress
     OnPrepareCanvas = sgStringListPrepareCanvas
+    OnSelection = sgStringListSelection
     ColWidths = (
       30
       97

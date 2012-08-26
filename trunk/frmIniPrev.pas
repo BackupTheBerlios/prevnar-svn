@@ -132,10 +132,13 @@ type
     procedure mnuMiscVocabUnloadClick(Sender: TObject);
     procedure mnuViewShowTranslatedClick(Sender: TObject);
     procedure mnuViewShowUntranslatedClick(Sender: TObject);
+    procedure sgStringListColRowMoved(Sender: TObject; IsColumn: Boolean;
+      sIndex, tIndex: Integer);
     procedure sgStringListDblClick(Sender: TObject);
     procedure sgStringListKeyPress(Sender: TObject; var Key: char);
     procedure sgStringListPrepareCanvas(sender: TObject; aCol, aRow: Integer;
       aState: TGridDrawState);
+    procedure sgStringListSelection(Sender: TObject; aCol, aRow: Integer);
     procedure tmrStatusTimer(Sender: TObject);
     procedure txtMTranslationKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
@@ -220,7 +223,9 @@ end;
 //Calculates the % value of the portion, relative to the whole part
 function PerCent (WholePart: Double; Portion:Double): Double;
 begin
-     Result:= (Portion/WholePart)*100;
+     if WholePart <> 0 then
+       Result:= (Portion/WholePart)*100
+     else Result:=0;
 end;
 
 
@@ -456,6 +461,17 @@ begin
 end; //if length
 end;
 
+procedure CleanStringGridBackground;
+var
+  i:integer;
+begin
+with frmIniPrevMain.sgStringList do
+begin //with
+   SetLength(SgSlBG,RowCount);
+   for i:=0 to RowCount-1 do SgSlBG[i]:= clWhite;
+end //with
+end;
+
 procedure OpenMainFile (FileName: string=''; ForcedCharset:TUniStreamTypes=ufUndefined; CleanTable:Boolean=True);
 const
   TF= true;
@@ -508,7 +524,7 @@ begin
     for i:= 0 to (Length (MainStrings )-1) do
       begin //for i
       MainLine:= MainStrings[i];
-      if CompareText(LeftStr (MainLine,Length(SectionCloser)), SectionOpener)= 0 then
+      if utf8CompareText(LeftStr (MainLine,Length(SectionOpener)), SectionOpener)= 0 then
        begin
          SectionName:= Unclose(MainLine, SectionOpener, SectionCloser);
        end;
@@ -528,8 +544,7 @@ begin
           ShowMessage (ezNoStringsFoundMakeSureThatYouHaveSetTheProperRowSplitterInTheSettinsAndThatYouHaveOpenedAProperFile);
           exit;
      end;}
-  SetLength(SgSlBG,sgStringList.RowCount);
-  for i:=0 to sgStringList.RowCount-1 do SgSlBG[i]:= clWhite;
+  CleanStringGridBackground;
 
   lblStatus.Caption:= ezTotalStrings + IntToStr ( sgStringList.RowCount -1);
   mnuFileLoadAuxLang.Enabled:=TF;
@@ -870,6 +885,12 @@ begin
      else ShowHideItems (DisplayAll);
 end;
 
+procedure TfrmIniPrevMain.sgStringListColRowMoved(Sender: TObject;
+  IsColumn: Boolean; sIndex, tIndex: Integer);
+begin
+
+end;
+
 procedure OpenTranslationFile (FileName: string=''; ForcedCharset:TUniStreamTypes= ufUndefined);
 const
   TF= true;
@@ -886,6 +907,7 @@ var
   NewLineContents: String = '';
   NewLinesFound:integer=0;
   AutoFilledLines:integer=0;
+  SectionName:String='';
 begin
 with frmIniPrevMain do
   begin //with
@@ -900,7 +922,7 @@ with frmIniPrevMain do
     FileContents:= ReadUTF8 (FileName,ForcedCharset);
     TranslationFileContents:=FileContents.UniText;
     CharsetTranslation:=FileContents.Encoding;
-
+    CleanStringGridBackground;
     //TODO- The ANSI codepage shall be selectable via a popup menu.
     if CharsetTranslation=ufANSI then
     begin
@@ -924,18 +946,24 @@ with frmIniPrevMain do
     lblNewLineStringTranslation.Caption:= NewLineToText(NewLine) ;
     SetLength(TranslationStrings,Occurs(TranslationFileContents,NewLine),2);
     CurrentNewLine:=1;
-    for i:=1 to sgStringList.RowCount - 1 do sgStringList.Cells[colTranslation,i]:=''; //Cleans translations column
+    for i:=1 to sgStringList.RowCount - 1 do sgStringList.Cells[colTranslation,i]:=''; //Cleans translations columns
     for i:=0 to Occurs(TranslationFileContents,NewLine)-1 do
     begin //for i
-      NextNewLine:= PosEx (NewLine, TranslationFileContents,CurrentNewLine)+length(NewLine);
+      NextNewLine:= PosEx (NewLine, TranslationFileContents,CurrentNewLine)+Length(NewLine);
       TranslationStrings[i,0]:= MidStr (TranslationFileContents,CurrentNewLine,NextNewLine- CurrentNewLine-Length(NewLine));
+
+      if utf8CompareText(LeftStr (TranslationStrings[i,0],Length(SectionOpener)), SectionOpener)= 0 then
+      begin
+         SectionName:= Unclose(TranslationStrings[i,0], SectionOpener, SectionCloser);
+      end;
       CurrentNewLine:= NextNewLine;
         if PosEx (RowSplitter,TranslationStrings[i,0])<> 0 then
         begin //if
           Key:=LeftStr (TranslationStrings[i,0],PosEx (RowSplitter,TranslationStrings[i,0])-1) ;
              for j:=0 to sgStringList.RowCount -1 do
              begin //for j
-                if  CompareText (key,sgStringList.Cells[colKey,j])=0 then
+                if  (CompareText(Key,sgStringList.Cells[colKey,j])=0)
+                  and ((UTF8CompareText(SectionName,sgStringList.Cells[colSection,j])=0) or (IgnoreSections = True))then
                 begin //if
                   sgStringList.Cells[colTranslation,j]:= Mid (TranslationStrings[i,0],Length(Key+RowSplitter)+1,100);
                   TranslationStrings [i,1]:= sgStringList.Cells[colRow,j]; //The KEY value is not usable, since there might be equal keys in different sections
@@ -957,7 +985,7 @@ with frmIniPrevMain do
            sgStringList.Cells [colMain,i]: SetCellBackground (sgStringList,colTranslation,i,clCream)
            else inc (TranslatedCount);
       end;}
-          //TODO: Replace with case (I tried to use CASE with no succes, it occured that the version of Lazarus that I had some bugs.)
+          //TODO: Replace with case (I tried to use CASE with no success, it occurred that the version of Lazarus that I had some bugs.)
           if sgStringList.Cells [colTranslation,i]= '' then
             begin //if Line is missing in the translation file
               SetCellBackground(i,clYellow);
@@ -1205,6 +1233,12 @@ begin
    if ((aRow >0) and (aRow= sgStringList.Selection.Top)) then
    sgStringList.Canvas.Brush.Color:= clTeal  ;
    sgStringList.Canvas.Font.Color:= clBlack;
+end;
+
+procedure TfrmIniPrevMain.sgStringListSelection(Sender: TObject; aCol,
+  aRow: Integer);
+begin
+   sgStringList.Col:=0; //Prevent sgStringList from autoscrolling left to show the rightmost colums in the centre
 end;
 
 procedure TfrmIniPrevMain.tmrStatusTimer(Sender: TObject);
