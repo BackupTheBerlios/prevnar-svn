@@ -4,12 +4,12 @@
     <Version Value="9"/>
     <PathDelim Value="\"/>
     <General>
+      <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
       <Title Value="ПревНарин [PrevNarin]"/>
       <ResourceType Value="res"/>
       <UseXPManifest Value="True"/>
       <Icon Value="0"/>
-      <ActiveWindowIndexAtStart Value="0"/>
     </General>
     <i18n>
       <EnableI18N LFM="False"/>
@@ -20,7 +20,7 @@
       <CharSet Value="04B0"/>
       <StringTable CompanyName="СМ630" ProductVersion="ПревНарин (PrevNarin)"/>
     </VersionInfo>
-    <BuildModes Count="1" Active="Default">
+    <BuildModes Count="1">
       <Item1 Name="Default" Default="True"/>
     </BuildModes>
     <PublishOptions>
@@ -39,15 +39,11 @@
         <PackageName Value="LCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="10">
+    <Units Count="8">
       <Unit0>
         <Filename Value="prevnarin.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="PrevNarin"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="25"/>
-        <CursorPos X="34" Y="35"/>
-        <UsageCount Value="200"/>
       </Unit0>
       <Unit1>
         <Filename Value="frmIniPrev.pas"/>
@@ -56,110 +52,50 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmIniPrev"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="1"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="919"/>
-        <CursorPos X="38" Y="929"/>
-        <UsageCount Value="200"/>
-        <Loaded Value="True"/>
-        <LoadedDesigner Value="True"/>
       </Unit1>
       <Unit2>
-        <Filename Value="frmIniPrev.lfm"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
-        <CursorPos X="1" Y="1"/>
-        <UsageCount Value="5"/>
-        <DefaultSyntaxHighlighter Value="LFM"/>
-      </Unit2>
-      <Unit3>
-        <Filename Value=""/>
-        <UsageCount Value="10"/>
-      </Unit3>
-      <Unit4>
         <Filename Value="frmPNSettings.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="frmSettings"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmPNSettings"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="260"/>
-        <CursorPos X="48" Y="252"/>
-        <UsageCount Value="200"/>
-      </Unit4>
-      <Unit5>
+      </Unit2>
+      <Unit3>
         <Filename Value="frmPNSearch.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="frmSearch"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmPNSearch"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
-        <CursorPos X="44" Y="71"/>
-        <UsageCount Value="200"/>
-      </Unit5>
-      <Unit6>
+      </Unit3>
+      <Unit4>
         <Filename Value="frmPNGoto.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="frmGoto"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmPNGoto"/>
-        <EditorIndex Value="0"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
-        <CursorPos X="1" Y="1"/>
-        <UsageCount Value="202"/>
-        <Loaded Value="True"/>
-        <LoadedDesigner Value="True"/>
-      </Unit6>
-      <Unit7>
+      </Unit4>
+      <Unit5>
         <Filename Value="PNCommons.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="PNCommons"/>
-        <EditorIndex Value="2"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="537"/>
-        <CursorPos X="17" Y="565"/>
-        <UsageCount Value="201"/>
-        <Loaded Value="True"/>
-      </Unit7>
-      <Unit8>
+      </Unit5>
+      <Unit6>
         <Filename Value="frmPNAbout.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="frmAbout"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmPNAbout"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
-        <CursorPos X="3" Y="17"/>
-        <UsageCount Value="203"/>
-      </Unit8>
-      <Unit9>
+      </Unit6>
+      <Unit7>
         <Filename Value="charencstreams.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="charencstreams"/>
-        <UsageCount Value="24"/>
-      </Unit9>
-      <Unit10>
-        <Filename Value="frmPNVocabMan.pas"/>
-        <IsPartOfProject Value="True"/>
-        <ComponentName Value="frmVocabMan"/>
-        <HasResources Value="True"/>
-        <ResourceBaseClass Value="Form"/>
-        <UnitName Value="frmPNVocabMan"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="270"/>
-        <CursorPos X="25" Y="284"/>
-        <UsageCount Value="24"/>
-      </Unit10>
+      </Unit7>
     </Units>
-    <JumpHistory Count="0" HistoryIndex="0">
-    </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
@@ -190,20 +126,6 @@
     </Other>
   </CompilerOptions>
   <Debugging>
-    <BreakPoints Count="1">
-      <Item1>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsGlobal"/>
-        <WatchKind Value="wpkWrite"/>
-        <Source Value="charencstreams.pas"/>
-        <Line Value="360"/>
-      </Item1>
-    </BreakPoints>
-    <Watches Count="1">
-      <Item1>
-        <Expression Value="GetRowIndex"/>
-      </Item1>
-    </Watches>
     <Exceptions Count="3">
       <Item1>
         <Name Value="EAbort"/>
