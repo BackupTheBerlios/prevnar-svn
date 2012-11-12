@@ -1,12 +1,12 @@
 object frmSettings: TfrmSettings
-  Left = 323
-  Height = 332
-  Top = 109
-  Width = 514
+  Left = 211
+  Height = 370
+  Top = 102
+  Width = 597
   BorderStyle = bsSingle
   Caption = 'Settings'
-  ClientHeight = 332
-  ClientWidth = 514
+  ClientHeight = 370
+  ClientWidth = 597
   OnCreate = FormCreate
   LCLVersion = '1.1'
   object chkFillInEmpty: TCheckBox
@@ -25,7 +25,7 @@ object frmSettings: TfrmSettings
   object cmdOkay: TButton
     Left = 272
     Height = 23
-    Top = 296
+    Top = 326
     Width = 72
     Caption = 'Okay'
     ModalResult = 1
@@ -35,7 +35,7 @@ object frmSettings: TfrmSettings
   object cmdCancel: TButton
     Left = 360
     Height = 23
-    Top = 296
+    Top = 326
     Width = 72
     Caption = 'Cancel'
     ModalResult = 2
@@ -44,9 +44,9 @@ object frmSettings: TfrmSettings
   end
   object lblIgnoreBeginnings: TLabel
     Left = 8
-    Height = 14
+    Height = 13
     Top = 120
-    Width = 124
+    Width = 123
     Caption = 'Ignore lines starting with:'
     ParentColor = False
   end
@@ -63,11 +63,12 @@ object frmSettings: TfrmSettings
   end
   object lblRowSplitter: TLabel
     Left = 8
-    Height = 14
+    Height = 13
     Top = 31
-    Width = 58
+    Width = 57
     Caption = 'Row splitter'
     ParentColor = False
+    OnClick = lblRowSplitterClick
   end
   object txtSectionOpener: TEdit
     Left = 136
@@ -82,9 +83,9 @@ object frmSettings: TfrmSettings
   end
   object lblSectionOpener: TLabel
     Left = 8
-    Height = 14
+    Height = 13
     Top = 64
-    Width = 73
+    Width = 72
     Caption = 'Section opener'
     ParentColor = False
   end
@@ -101,9 +102,9 @@ object frmSettings: TfrmSettings
   end
   object lblSectionCloser: TLabel
     Left = 8
-    Height = 14
+    Height = 13
     Top = 96
-    Width = 67
+    Width = 66
     Caption = 'Section closer'
     ParentColor = False
   end
@@ -116,10 +117,10 @@ object frmSettings: TfrmSettings
     TabOrder = 6
   end
   object cboConfirmAutotranslate: TComboBox
-    Left = 8
+    Left = 480
     Height = 21
-    Top = 298
-    Width = 200
+    Top = 56
+    Width = 96
     ItemHeight = 13
     ItemIndex = 0
     Items.Strings = (
@@ -131,10 +132,10 @@ object frmSettings: TfrmSettings
     Text = 'Never ask'
   end
   object lblConfirmAutotranslate: TLabel
-    Left = 8
-    Height = 14
-    Top = 280
-    Width = 202
+    Left = 256
+    Height = 13
+    Top = 56
+    Width = 201
     Caption = 'Ask for confirmation when autotranslating'
     ParentColor = False
   end
@@ -148,17 +149,17 @@ object frmSettings: TfrmSettings
   end
   object lblRecent: TLabel
     Left = 256
-    Height = 14
+    Height = 13
     Top = 31
-    Width = 125
+    Width = 124
     Caption = 'Recent files to remember:'
     ParentColor = False
   end
   object speRecent: TSpinEdit
-    Left = 456
+    Left = 480
     Height = 21
     Top = 24
-    Width = 50
+    Width = 96
     MaxValue = 15
     TabOrder = 9
     Value = 15
@@ -170,8 +171,28 @@ object frmSettings: TfrmSettings
     Top = 232
     Width = 214
     Caption = 'Autotranslate after closing the edit fields'
+    OnChange = chkOkayAutotranslateChange
     ParentShowHint = False
     ShowHint = True
     TabOrder = 10
+  end
+  object chkStripQuotes: TCheckBox
+    Left = 9
+    Height = 17
+    Top = 280
+    Width = 120
+    Caption = 'Strip quotation marks'
+    TabOrder = 11
+  end
+  object chkConvertPercent: TCheckBox
+    Left = 8
+    Height = 17
+    Hint = 'Converts %s to %1 and %n to %2 only while editing the lines.'#13#10'This is convenient when the translation language uses a nonlatin alphabeth.'
+    Top = 304
+    Width = 174
+    Caption = 'Convert %n and %s to numbers'
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 12
   end
 end

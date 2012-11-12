@@ -25,7 +25,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ExtCtrls, Spin, strutils, PNCommons, Menus,charencstreams;
+  ExtCtrls, Spin, strutils, PNCommons, Menus,charencstreams, frmIniPrev;
 
 type
 
@@ -33,7 +33,9 @@ type
 
   TfrmSettings = class(TForm)
     chkIgnoreSections: TCheckBox;
+    chkStripQuotes: TCheckBox;
     chkOkayAutotranslate: TCheckBox;
+    chkConvertPercent: TCheckBox;
     cmdOkay: TButton;
     chkFillInEmpty: TCheckBox;
     cmdCancel: TButton;
@@ -49,9 +51,11 @@ type
     txtRowSplitter: TEdit;
     lblIgnoreBeginnings: TLabel;
     txtSectionCloser: TEdit;
+    procedure chkOkayAutotranslateChange(Sender: TObject);
     procedure cmdCancelClick(Sender: TObject);
     procedure cmdOkayClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure lblRowSplitterClick(Sender: TObject);
   private
     { private declarations }
   public
@@ -69,7 +73,7 @@ procedure SetSettings;
 procedure SaveSettings;
 
 implementation
-uses frmIniPrev;
+//uses frmIniPrev;
 
 {$R *.lfm}
 
@@ -133,14 +137,17 @@ begin
     +'IgnoreLines=' + UTF8StringReplace (txtIgnoreStarts.Lines.Text ,crlf,'\n',[rfIgnoreCase,rfReplaceAll])+ CrLf
     +'ConfirmAutotranslate=' + its(ConfirmAutotranslate)+CrLf
     +'IgnoreSections=' + BooleanToString (IgnoreSections)+CrLf
+    +'Convert%=' + BooleanToString (ConvertPercent)+CrLf
     +'DebugMode='+ BooleanToString(DebugMode)+ CrLf
     +'RecentStore=' + IntToStr (speRecent.Value)+ CrLf
     +'RecentMain='+  AssembleRecent(frmIniPrev.mnuFileRecentMain)+ CrLf
     +'RecentTrans='+  AssembleRecent(frmIniPrev.mnuFileRecentTrans)+ CrLf
     +'RecentAux='+  AssembleRecent(frmIniPrev.mnuFileRecentAux)+ CrLf
+    +'RecentSet='+  AssembleRecent(frmIniPrev.mnuFileRecentSet)+ CrLf
     +'VocabularySourcePath=' + VocabularySourcePath +CrLf
     +'VocabularyPath='+ VocabularyPath+ CrLf
     +'AutotranslateOkay=' + BooleanToString(AutotranslateOkay) +CrLf
+    +'StripQuotes='+ BooleanToString (StripQuotes) +CrLf
     + CrLf ; //CrLf is needed, to assure that the value will be properly read, if the settings file cannot be deleted.
  end;  //with
  try
@@ -215,6 +222,14 @@ begin
        mnuFileRecentAux[i].OnClick:=@mnuFileRecentAuxClick;
        mnuFileLoadAuxLang.Add (mnuFileRecentAux[i]);
        mnuFileRecentAux[i].Visible:=False;
+
+       mnuFileRecentSet[i]:=TMenuItem.Create (mnuFileOpenSet);
+       mnuFileRecentSet[i].Caption:='';
+       mnuFileRecentSet[i].Tag:=i;
+       mnuFileRecentSet[i].OnClick:=@mnuFileRecentSetClick;
+       mnuFileOpenSet.Add (mnuFileRecentSet[i]);
+       mnuFileRecentSet[i].Visible:=False;
+
      end; //next i
    end; //with
  if FileExistsUTF8 (AppendPathDelim(ProgramDirectory) + SettingsFile)  then
@@ -235,14 +250,21 @@ begin
        'IgnoreLines': IgnoreLines:=Split (mid(SettingsContents[i],Length(key+'=')+1,100),'\n');
        'ConfirmAutotranslate': ConfirmAutotranslate:=StrToInt (Value);
        'IgnoreSections': IgnoreSections:=StringToBoolean(Value);
+       'Convert%': ConvertPercent:=StringToBoolean(Value);
        'DebugMode': DebugMode:=StringToBoolean(Value);
        'RecentStore': RecentStore:=StrToInt(Value);
        'RecentMain':ExtractRecent (mnuFileRecentMain, Value );
        'RecentTrans':ExtractRecent (mnuFileRecentTrans,Value);
        'RecentAux':ExtractRecent (mnuFileRecentAux,Value);
+       'RecentSet':
+         begin
+           ExtractRecent (mnuFileRecentSet,Value);
+           frmIniPrevMain.mnuFileOpenSet.Enabled:=mnuFileRecentSet[0].Visible;
+         end;
        'VocabularyPath':VocabularyPath:=Value;
        'VocabularySourcePath':VocabularySourcePath:=Value;
        'AutotranslateOkay': AutotranslateOkay:=StringToBoolean(Value);
+       'StripQuotes':StripQuotes:=StringToBoolean(Value);
      end;  //case
    end;  //for i
    except
@@ -251,20 +273,22 @@ begin
  end
 else
 begin
-RowSplitter:='=';
-SectionOpener:='[';
-SectionCloser:=']';
-FillBlanks:=True ;
-SetLength(IgnoreLines,3);
-IgnoreLines[0]:='no_translate';
-IgnoreLines[1]:='\\';
-IgnoreLines[2]:=Apostrophy;
-ConfirmAutotranslate:=0;
-AutotranslateOkay:=False;
-IgnoreSections:=False;
-DebugMode:=False;
-RecentStore:=5;
-SaveSettings;
+  RowSplitter:='=';
+  SectionOpener:='[';
+  SectionCloser:=']';
+  FillBlanks:=True ;
+  SetLength(IgnoreLines,3);
+  IgnoreLines[0]:='no_translate';
+  IgnoreLines[1]:='\\';
+  IgnoreLines[2]:=Apostrophy;
+  ConfirmAutotranslate:=0;
+  AutotranslateOkay:=False;
+  IgnoreSections:=False;
+  ConvertPercent:=False;
+  StripQuotes:=True;
+  DebugMode:=False;
+  RecentStore:=5;
+  SaveSettings;
 end;
  SetSettings;
 end;
@@ -282,6 +306,8 @@ begin
    RecentStore:=speRecent.Value;
    AutotranslateOkay:=chkOkayAutotranslate.Checked;
    IgnoreSections:=chkIgnoreSections.Checked;
+   ConvertPercent:=chkConvertPercent.Checked;
+   StripQuotes:=chkStripQuotes.Checked;
  end; //with
 end;
 
@@ -296,15 +322,21 @@ begin
     txtIgnoreStarts.Lines.Text:=Join(IgnoreLines,CrLf);
     cboConfirmAutotranslate.ItemIndex:=ConfirmAutotranslate;
     chkIgnoreSections.Checked:=IgnoreSections;
+    chkConvertPercent.Checked:=ConvertPercent;
     speRecent.Value:=RecentStore;
     chkOkayAutotranslate.Checked:=AutotranslateOkay;
-    chkIgnoreSections.Checked:=IgnoreSections;
+    chkStripQuotes.Checked:=StripQuotes;
   end; //with
 end;
 
 procedure TfrmSettings.FormCreate(Sender: TObject);
 begin
   LoadSettings;
+end;
+
+procedure TfrmSettings.lblRowSplitterClick(Sender: TObject);
+begin
+
 end;
 
 procedure TfrmSettings.cmdOkayClick(Sender: TObject);
@@ -315,6 +347,11 @@ end;
 procedure TfrmSettings.cmdCancelClick(Sender: TObject);
 begin
   frmSettings.Hide  ;
+end;
+
+procedure TfrmSettings.chkOkayAutotranslateChange(Sender: TObject);
+begin
+
 end;
 
 end.
