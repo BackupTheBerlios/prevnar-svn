@@ -19,29 +19,33 @@ object frmGoto: TfrmGoto
   end
   object lblLineNumber: TLabel
     Left = 8
-    Height = 14
+    Height = 13
     Top = 8
-    Width = 62
+    Width = 61
     Caption = 'Go to line №'
     ParentColor = False
   end
   object cmdGo: TButton
     Left = 96
-    Height = 25
+    Height = 23
     Top = 23
-    Width = 75
+    Width = 60
+    AutoSize = True
     Caption = 'Go'
+    Constraints.MinWidth = 60
     Default = True
     ModalResult = 1
     TabOrder = 1
   end
   object cmdCancel: TButton
     Left = 96
-    Height = 25
+    Height = 23
     Top = 56
-    Width = 75
+    Width = 60
+    AutoSize = True
     Cancel = True
     Caption = 'Cancel'
+    Constraints.MinWidth = 60
     ModalResult = 2
     TabOrder = 2
   end

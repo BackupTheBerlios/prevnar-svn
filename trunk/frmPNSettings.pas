@@ -32,6 +32,7 @@ type
   { TfrmSettings }
 
   TfrmSettings = class(TForm)
+    chkConvertQuotes: TCheckBox;
     chkIgnoreSections: TCheckBox;
     chkStripQuotes: TCheckBox;
     chkOkayAutotranslate: TCheckBox;
@@ -148,6 +149,7 @@ begin
     +'VocabularyPath='+ VocabularyPath+ CrLf
     +'AutotranslateOkay=' + BooleanToString(AutotranslateOkay) +CrLf
     +'StripQuotes='+ BooleanToString (StripQuotes) +CrLf
+    +'ConvertQuotes='+ BooleanToString (ConvertQuotes) +CrLf
     + CrLf ; //CrLf is needed, to assure that the value will be properly read, if the settings file cannot be deleted.
  end;  //with
  try
@@ -265,6 +267,7 @@ begin
        'VocabularySourcePath':VocabularySourcePath:=Value;
        'AutotranslateOkay': AutotranslateOkay:=StringToBoolean(Value);
        'StripQuotes':StripQuotes:=StringToBoolean(Value);
+       'ConvertQuotes':ConvertQuotes:=StringToBoolean(Value);
      end;  //case
    end;  //for i
    except
@@ -286,6 +289,7 @@ begin
   IgnoreSections:=False;
   ConvertPercent:=False;
   StripQuotes:=True;
+  ConvertQuotes:=False;
   DebugMode:=False;
   RecentStore:=5;
   SaveSettings;
@@ -308,6 +312,7 @@ begin
    IgnoreSections:=chkIgnoreSections.Checked;
    ConvertPercent:=chkConvertPercent.Checked;
    StripQuotes:=chkStripQuotes.Checked;
+   ConvertQuotes:=chkConvertQuotes.Checked;
  end; //with
 end;
 
@@ -326,6 +331,7 @@ begin
     speRecent.Value:=RecentStore;
     chkOkayAutotranslate.Checked:=AutotranslateOkay;
     chkStripQuotes.Checked:=StripQuotes;
+    chkConvertQuotes.Checked:=ConvertQuotes;
   end; //with
 end;
 

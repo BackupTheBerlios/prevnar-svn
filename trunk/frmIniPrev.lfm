@@ -148,6 +148,7 @@ object frmIniPrevMain: TfrmIniPrevMain
     RowCount = 1
     ScrollBars = ssAutoVertical
     TabOrder = 0
+    OnColRowMoved = sgStringListColRowMoved
     OnDblClick = sgStringListDblClick
     OnKeyPress = sgStringListKeyPress
     OnPrepareCanvas = sgStringListPrepareCanvas

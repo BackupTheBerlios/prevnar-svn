@@ -1,7 +1,7 @@
 object frmSettings: TfrmSettings
-  Left = 211
+  Left = 374
   Height = 370
-  Top = 102
+  Top = 161
   Width = 597
   BorderStyle = bsSingle
   Caption = 'Settings'
@@ -23,20 +23,26 @@ object frmSettings: TfrmSettings
     TabOrder = 0
   end
   object cmdOkay: TButton
-    Left = 272
+    Left = 440
     Height = 23
-    Top = 326
-    Width = 72
+    Top = 336
+    Width = 51
+    AutoSize = True
     Caption = 'Okay'
     ModalResult = 1
     OnClick = cmdOkayClick
     TabOrder = 1
   end
   object cmdCancel: TButton
-    Left = 360
+    AnchorSideLeft.Control = cmdOkay
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = cmdOkay
+    Left = 496
     Height = 23
-    Top = 326
-    Width = 72
+    Top = 336
+    Width = 58
+    AutoSize = True
+    BorderSpacing.Left = 5
     Caption = 'Cancel'
     ModalResult = 2
     OnClick = cmdCancelClick
@@ -187,12 +193,20 @@ object frmSettings: TfrmSettings
   object chkConvertPercent: TCheckBox
     Left = 8
     Height = 17
-    Hint = 'Converts %s to %1 and %n to %2 only while editing the lines.'#13#10'This is convenient when the translation language uses a nonlatin alphabeth.'
-    Top = 304
-    Width = 174
-    Caption = 'Convert %n and %s to numbers'
+    Hint = 'Converts %s to %1; %n to %2 and %i to 3 only while editing the lines.'#13#10'This is convenient when the translation language uses a nonlatin alphabeth.'
+    Top = 328
+    Width = 160
+    Caption = 'Convert %n, etc. to numbers'
     ParentShowHint = False
     ShowHint = True
     TabOrder = 12
+  end
+  object chkConvertQuotes: TCheckBox
+    Left = 8
+    Height = 17
+    Top = 304
+    Width = 88
+    Caption = 'Convert \" to "'
+    TabOrder = 13
   end
 end

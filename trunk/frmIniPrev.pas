@@ -186,6 +186,8 @@ var
   CharsetMain: TUniStreamTypes;
   CharsetTranslation: TUniStreamTypes;
   ConvertedPercent:Boolean=False;
+  ConvertedQuotes:Boolean=False;
+  StrippedQuotes:Boolean=False;
 
   //CharsetTranslationWrite: Integer;
   CharsetTranslationWrite: TUniStreamTypes;
@@ -315,21 +317,6 @@ begin
     SgSlBG[Row]:= BackgroundColour;
 end;
 
-
-//I could not find a case insensitive search function in a reasonable time, so I made this one
-function InStr (SearchString: string; SoughtString:string; start:integer = 1;CaseSensitive:Boolean = False ): integer;
-var
-  RetVal:integer= 0;
-begin
-     if CaseSensitive= True then
-          RetVal:= PosEx (SoughtString, SearchString , start)
-     else
-         RetVal:= PosEx (UTF8LowerCase  (SoughtString),UTF8LowerCase  (SearchString), start );
-     Result:= RetVal ;
-end;
-
-
-
 //Converts the character sequence for a new string to a human readable string
 function NewLineToText(str: string):string;
 var
@@ -429,6 +416,7 @@ begin
   ezMissingOpeningQuotationMarkOnLine1:='Missing opening quotation mark on line №%1';
   ezMissingClosingQuotationMarkOnLine1:='Missing closing quotation mark on line №%1';
   ezDoubleQuotationMarksOnLine1:= 'Double quotation marks on line №%1';
+  ezTooManyQuotationMarksOnLine1:='Too many quotation marks on line№  %1';
 
   frmIniPrevMain.Caption:=ezIniPrev;
 end;
@@ -447,8 +435,8 @@ begin //with
   sgStringList.Columns[colRow].Width:= 35;
   sgStringList.Columns[colSection].Width:= 50;
   sgStringList.Columns[colKey].Width:= 30;
-  sgStringList.Columns[colMain].Width:=  trunc((frmIniPrevMain.sgStringList.Width - 90) / 2) - 20;
-  sgStringList.Columns[colTranslation].Width:=  frmIniPrevMain.sgStringList.Columns[colMain].Width;
+  sgStringList.Columns[colMain].Width:=  trunc((frmIniPrevMain.sgStringList.Width - 90) / 2) - 10;
+  sgStringList.Columns[colTranslation].Width:=  frmIniPrevMain.sgStringList.Columns[colMain].Width+10;
   TopDefault:= frmIniPrevMain.Height - lblNewLineStringDefault.Height -40;
   TopTranslation:= TopDefault+20;
 
@@ -1031,14 +1019,10 @@ begin
   SaveTranslation(FilenameTranslation);
 end;
 
-
 procedure TfrmIniPrevMain.mnuFileSaveAsClick(Sender: TObject);
 begin
   SaveTranslation();
 end;
-
-
-
 
 function RemoveIgnoreChars(aStr: string; IgnoreChars:array of String): String;
 var
@@ -1048,7 +1032,7 @@ begin
      RetVal:=aStr;
      for i:=0 to Length (IgnoreChars) do
      begin //for
-      RetVal:=UTF8StringReplace (RetVal,IgnoreChars[i],'',[]);
+      RetVal:=UTF8StringReplace (RetVal,IgnoreChars[i],'',[rfReplaceAll]);
      end; //for
      Result:= RetVal;
 end;
@@ -1101,10 +1085,8 @@ end;
 procedure TfrmIniPrevMain.sgStringListColRowMoved(Sender: TObject;
   IsColumn: Boolean; sIndex, tIndex: Integer);
 begin
-
+  sgStringList.Cols[colTranslation]   ;
 end;
-
-
 
 procedure TfrmIniPrevMain.lblCharsetTranslationClick(Sender: TObject);
   var
@@ -1273,27 +1255,51 @@ procedure EditItem;
 begin
   with frmIniPrevMain do
   begin
-    SetEditWidgets(True );
-    if StripQuotes=True
-      then txtMDefault.Text:=Unclose(sgStringList.Cells [colMain,sgStringList.Selection.Top],'"','"').Contents
+    SetEditWidgets(True);
+   //Show main line
+   if StripQuotes=True
+      then txtMDefault.Text:=Unclose(sgStringList.Cells [colMain,sgStringList.Selection.Top],'"','"',uncLast).Contents
       else txtMDefault.Text:=sgStringList.Cells [colMain,sgStringList.Selection.Top];
-    if (ConvertPercent = True)
-      and (InStr(txtMDefault.Text,'%1')=0) and (InStr(txtMDefault.Text,'%2')=0) then
+    if (ConvertPercent=True)
+      and (InStr(txtMDefault.Text,'%1')=0) and (InStr(txtMDefault.Text,'%2')=0) and (InStr(txtMDefault.Text,'%3')=0) then
       begin
-         txtMDefault.Text:= utf8StringReplace(txtMDefault.Text,'%n','%1',[]);
-         txtMDefault.Text:= utf8StringReplace(txtMDefault.Text,'%s','%2',[]);
+         txtMDefault.Text:= utf8StringReplace(txtMDefault.Text,'%n','%1',[rfReplaceAll,rfIgnoreCase]);
+         txtMDefault.Text:= utf8StringReplace(txtMDefault.Text,'%s','%2',[rfReplaceAll,rfIgnoreCase]);
+         txtMDefault.Text:= utf8StringReplace(txtMDefault.Text,'%i','%3',[rfReplaceAll,rfIgnoreCase]);
       end;
-    if StripQuotes=True
-      then EditedLine:=Unclose(sgStringList.Cells [colTranslation,sgStringList.Selection.Top],'"','"')
-      else EditedLine.Contents:=sgStringList.Cells [colTranslation,sgStringList.Selection.Top];
-    if (ConvertPercent = True)
-      and (InStr(EditedLine.Contents,'%1')=0) and (InStr(EditedLine.Contents,'%2')=0) then
+    if (ConvertQuotes=True)
+      and (Occurs(txtMDefault.Text,'\"')=Occurs(txtMDefault.Text,'"')) then
       begin
-         EditedLine.Contents:= utf8StringReplace(EditedLine.Contents,'%n','%1',[]);
-         EditedLine.Contents:= utf8StringReplace(EditedLine.Contents,'%s','%2',[]);
+         txtMDefault.Text:= utf8StringReplace(txtMDefault.Text,'\"','"',[rfReplaceAll]);
+      end;
+
+    //Show translation line
+    if StripQuotes=True
+      then
+      begin
+        EditedLine:=Unclose(sgStringList.Cells [colTranslation,sgStringList.Selection.Top],'"','"',uncLast);
+        StrippedQuotes:=True;
+      end
+      else EditedLine.Contents:=sgStringList.Cells [colTranslation,sgStringList.Selection.Top];
+
+    if (ConvertPercent=True)
+      and (InStr(EditedLine.Contents,'%1')=0) and (InStr(EditedLine.Contents,'%2')=0) and (InStr(EditedLine.Contents,'%3')=0) then
+      begin
+         EditedLine.Contents:= utf8StringReplace(EditedLine.Contents,'%n','%1',[rfReplaceAll]);
+         EditedLine.Contents:= utf8StringReplace(EditedLine.Contents,'%s','%2',[rfReplaceAll]);
+         EditedLine.Contents:= utf8StringReplace(EditedLine.Contents,'%i','%3',[rfReplaceAll]);
          ConvertedPercent:=True;
       end
       else ConvertedPercent:=False;
+
+      if (ConvertQuotes=True)
+      and (Occurs(EditedLine.Contents,'\"')=Occurs(EditedLine.Contents,'"')) then
+      begin
+         EditedLine.Contents:= utf8StringReplace(EditedLine.Contents,'\"','"',[rfReplaceAll]);
+         ConvertedQuotes:=True;
+      end
+      else ConvertedQuotes:=False;
+
     txtMTranslation.Text:=EditedLine.Contents;
     txtMAux.Visible:=AuxLoaded;
     if AuxLoaded=True then txtMAux.Text:= AuxStrings[Length(AuxStrings)-1,0]+ CrLf +  AuxStrings [sgStringList.Selection.Top,0];
@@ -1332,27 +1338,6 @@ procedure TfrmIniPrevMain.tmrStatusTimer(Sender: TObject);
 begin
   lblStatusSecondary.Caption:='' ;
   tmrStatus.Enabled:=False;
-end;
-
-
-function UTF8StringReplace(const S, OldPattern, NewPattern: string{;  Flags: TReplaceFlags}): string;
-var
-  StringFull: UTF16String;
-  StartPosition: integer;
-  i: integer=1;
-begin
-       StringFull:= UTF8ToUTF16 (s) ;
-       repeat
-       StartPosition:=PosEx (UTF8LowerCase(OldPattern),UTF8LowerCase(UTF16ToUTF8(StringFull)),i);  //There is no utf16 to lowercase
-       if StartPosition= 0 then
-         if i=1 then StringFull:= s else break
-       else
-       begin
-         StringFull:= UTF16ToUTF8(LeftStr(StringFull,StartPosition-1)+ UTF8ToUTF16(NewPattern)+ RightStr(StringFull, UTF8Length (StringFull)-StartPosition-UTF8Length(OldPattern)+1));
-         i:=StartPosition+1;
-       end; //else
-     until StartPosition=0;
-     Result:=StringFull;
 end;
 
 procedure TfrmIniPrevMain.FormCreate(Sender: TObject);
@@ -1427,6 +1412,7 @@ procedure ReplaceEntry(Row:Integer);
 var
     i:integer;
     MainQuoted: Boolean=False;
+    a,b,c,d:string;
 begin
   with frmIniPrevMain do
   begin //with
@@ -1435,16 +1421,25 @@ begin
        then
          MainQuoted:=True;
 //    sgStringList.Cells [colMain,Row]:= txtMDefault.Text;
-    if (StripQuotes= True) and (MainQuoted=True)
-      then
-        sgStringList.Cells [colTranslation,Row]:={EditedLine.Opening} '"'+ txtMTranslation.Text+ '"' {EditedLine.Closing}
-      else
-        sgStringList.Cells [colTranslation,Row]:=txtMTranslation.Text; //TODO: If opening and closing='' only the upper line needs to be run.
-    if (ConvertPercent = true) then
+
+    sgStringList.Cells [colTranslation,Row]:=txtMTranslation.Text;
+    if (ConvertPercent =True) and (ConvertedPercent=True) then
     begin
-      sgStringList.Cells [colTranslation,Row]:=UTF8StringReplace(sgStringList.Cells [colTranslation,Row],'%1','%n');
-      sgStringList.Cells [colTranslation,Row]:=UTF8StringReplace(sgStringList.Cells [colTranslation,Row],'%2','%s');
+      sgStringList.Cells [colTranslation,Row]:=UTF8StringReplace(sgStringList.Cells [colTranslation,Row],'%1','%n',[]);
+      sgStringList.Cells [colTranslation,Row]:=UTF8StringReplace(sgStringList.Cells [colTranslation,Row],'%2','%s',[]);
+      sgStringList.Cells [colTranslation,Row]:=UTF8StringReplace(sgStringList.Cells [colTranslation,Row],'%3','%i',[]);
     end;
+
+    if (ConvertQuotes = True) and (ConvertedQuotes=True) then
+    begin
+      sgStringList.Cells [colTranslation,Row]:=UTF8StringReplace(sgStringList.Cells [colTranslation,Row],'"','\"',[rfReplaceAll]);
+    end;
+
+    if (StripQuotes=True) and (MainQuoted=True) and (StrippedQuotes=True)
+      then
+        sgStringList.Cells [colTranslation,Row]:={EditedLine.Opening} '"'+ sgStringList.Cells [colTranslation,Row] {txtMTranslation.Text}+ '"' {EditedLine.Closing}
+      else
+        sgStringList.Cells [colTranslation,Row]:=sgStringList.Cells [colTranslation,Row] {txtMTranslation.Text}; //TODO: If opening and closing='' only the upper line needs to be run.
 
     SetCellBackground(Row,clWhite);
     for i:= 0 to Length(TranslationStrings) do
@@ -1492,7 +1487,6 @@ begin
    if (key=LCLtype.VK_RETURN) and (ssCtrl in Shift) then OkayClicked();
    if (key=LCLType.VK_ESCAPE) then  SetEditWidgets(False);
 end;
-
 
 procedure TfrmIniPrevMain.cmdOkayClick(Sender: TObject);
  begin
@@ -1579,6 +1573,7 @@ procedure TfrmIniPrevMain.mnuMiscCheckQuotesClick(Sender: TObject);
 var
   i:integer;
   QuoteError:Integer=0;
+  QuotesCount:Integer;
 begin
 with sgStringList do
 begin //with
@@ -1587,6 +1582,7 @@ begin //with
          if (Length(Trim(Cells[colTranslation,i]))>0)
          then
           begin
+            QuotesCount:=Occurs(Cells[colTranslation,i],'"');
              if (LeftStr(Trim(Cells[colMain,i]),1)='"') and (LeftStr(Trim(Cells[colTranslation,i]),1)<>'"') then
              begin
                QuoteError:=1;
@@ -1601,6 +1597,11 @@ begin //with
              begin
                QuoteError:=3;
                QuestionDlg(ezError,LocalizeRowMultiple(ezDoubleQuotationMarksOnLine1, its(i)), mtCustom, [mrOK,ezOkay],'');
+             end;
+             if QuotesCount-Occurs(Cells[colTranslation,i],'\"')>2 then
+             begin
+               QuoteError:=4;
+               QuestionDlg(ezError,LocalizeRowMultiple(ezTooManyQuotationMarksOnLine1, its(i)), mtCustom, [mrOK,ezOkay],'');
              end;
            end;
          if QuoteError>0 then

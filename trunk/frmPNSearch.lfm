@@ -20,8 +20,8 @@ object frmSearch: TfrmSearch
     EditLabel.AnchorSideRight.Side = asrBottom
     EditLabel.AnchorSideBottom.Control = txtSoughtText
     EditLabel.Left = 16
-    EditLabel.Height = 14
-    EditLabel.Top = 4
+    EditLabel.Height = 13
+    EditLabel.Top = 5
     EditLabel.Width = 248
     EditLabel.Caption = 'Search for:'
     EditLabel.ParentColor = False
@@ -29,10 +29,12 @@ object frmSearch: TfrmSearch
   end
   object cmdSearch: TButton
     Left = 280
-    Height = 27
+    Height = 25
     Top = 21
-    Width = 72
+    Width = 75
     Caption = 'Search'
+    Constraints.MinHeight = 25
+    Constraints.MinWidth = 75
     Default = True
     ModalResult = 1
     TabOrder = 1
@@ -75,8 +77,11 @@ object frmSearch: TfrmSearch
     Height = 25
     Top = 56
     Width = 75
+    AutoSize = True
     Cancel = True
     Caption = 'Cancel'
+    Constraints.MinHeight = 25
+    Constraints.MinWidth = 75
     ModalResult = 2
     TabOrder = 4
   end

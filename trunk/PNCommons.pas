@@ -33,6 +33,7 @@ type
   StringArray2D = array of array of string ;
   IntegerArray1D = array of integer;
   DisplayMode= (DisplayAll=0, DisplayUntranslatedOnly= 1, DisplayFuzzyOnly= 2, DisplayUntranslatedAndFusy= 3, DisplayTranslatedOnly=4);
+  UncloseOccurence= (uncSecond, uncLast);
   UniFile= record
     UniText:string;
     Encoding: TUniStreamTypes;
@@ -58,7 +59,7 @@ function Mid (AText:string; AStart :Integer; ACount:Integer=-1 ):string;
 function GetBom(StartString: string):Integer;
 function ReadUTF8 (FileName:String; ForcedEncoding:TUniStreamTypes=ufUndefined): UniFile;
 function WriteUTF8 (FileName:String; StringToWrite: string; Encoding:TUniStreamTypes=ufUtf8; HasBOM:Boolean=True): string;
-procedure SetOS;
+
 function UTF8StringReplace(const S, OldPattern, NewPattern: string;  Flags: TReplaceFlags='[]'): string;
 function its (AInteger: integer): String;
 function OSVersion: integer;
@@ -66,8 +67,10 @@ function FilePath(FullFileName: string):String;
 function RemovePath(FullFileName: string) : string;
 function LocalizeRowMultiple(aString:string; Key1:string='';Key2:string='';Key3:string='';Key4:string='';Key5:string='';Key6:string=''):string;
 function LocalizeRowCountable (String0Items:string;String1Item:string; StringMultipleItems:string;KeyNumeric:QWord; Decimals:Integer=0 ):string;
-function Unclose (AString:String; Opener: String; Closer: String) : UnclosedLine;
+function Unclose (AString:String; Opener: String; Closer: String='';Occurence:UncloseOccurence=uncSecond): UnclosedLine;
 function UncloseReplaceEsc (AString:String; Opener: String; Closer: String) : String;
+function InStr (SearchString: string; SoughtString:string; start:integer = 1;CaseSensitive:Boolean = False ): integer;
+procedure SetOS;
 procedure DebugLine(AString: string);
 procedure DebugArray1D(AStringArray1D: StringArray1D);
 procedure DebugArray2D(AStringArray2D: StringArray2D);
@@ -106,6 +109,7 @@ var
    VocabularySourcePath:String;
    AutotranslateOkay:Boolean=False;
    StripQuotes:Boolean=True;
+   ConvertQuotes:Boolean=False;
    {End of adjustable vars}
 
   {Localization strings start here}
@@ -181,6 +185,7 @@ var
   ezVocabularySaved:String;
   ezMissingOpeningQuotationMarkOnLine1: String;
   ezMissingClosingQuotationMarkOnLine1: String;
+  ezTooManyQuotationMarksOnLine1:String;
   ezDoubleQuotationMarksOnLine1: String;
 {Localization strings end here}
 
@@ -241,6 +246,7 @@ begin
   Result :=RetVal;
 end;
 
+//TODO: To replace it with the Lazarus inbuilt function
 function FilePath(FullFileName: string):String;
 var
   RetVal:String;
@@ -248,7 +254,7 @@ var
 begin
   RetVal:=ReverseString(FullFileName);
   SlashPosition:=PosEx(Slash,RetVal);
-  RetVal:=ReverseString(Mid(RetVal, SlashPosition));
+  RetVal:=ReverseString(Mid(RetVal,SlashPosition));
   Result:=RetVal;
 end;
 
@@ -261,8 +267,8 @@ begin
    //Lazarus does not have an inbuilt function for searching backward, or at least I did not find one
    RetVal:=ReverseString(FullFileName);
    SlashPosition:= PosEx (Slash,RetVal) ;
-   RetVal:= ReverseString(LeftStr(RetVal, SlashPosition-1));
-   Result:= RetVal;
+   RetVal:=ReverseString(LeftStr(RetVal, SlashPosition-1));
+   Result:=RetVal;
 end;
 
 
@@ -271,6 +277,19 @@ type TUTF8Indexed = record
   charWidths:array of byte;
   rawData:array of DWord;
 end;
+
+//I could not find a case insensitive search function in a reasonable time, so I made this one
+function InStr (SearchString: string; SoughtString:string; start:integer = 1;CaseSensitive:Boolean = False ): integer;
+var
+  RetVal:integer= 0;
+begin
+     if CaseSensitive= True then
+        RetVal:= PosEx (SoughtString, SearchString , start)
+     else
+        RetVal:= PosEx (UTF8LowerCase  (SoughtString),UTF8LowerCase  (SearchString), start );
+     Result:= RetVal ;
+end;
+
 
 function UTF8ToUTF8Indexed(const Src:string):TUTF8Indexed;
 var
@@ -313,7 +332,7 @@ begin
   setlength(result,uPos);
 end;
 
-function UTF8StringReplace(const S, OldPattern, NewPattern: string;  Flags: TReplaceFlags): string;
+function UTF8StringReplace(const S, OldPattern, NewPattern: string;  Flags: TReplaceFlags='[]'): string;
 var
   osrc,src,search:TUTF8Indexed;
   outpos,lpTextLen,lpSearchLen,lpTextEnd,lpTextPos:PtrInt;
@@ -611,7 +630,7 @@ end;
 
 
 //Returns the text between Opener and Closer. Example- unclose ([section], '[',']') returns „section“.
-function Unclose (AString:String; Opener: String; Closer: String=''): UnclosedLine;
+function Unclose (AString:String; Opener: String; Closer: String='';Occurence:UncloseOccurence=uncSecond): UnclosedLine;
 var
   TokenStart: integer=0;
   TokenLength: integer=0;
@@ -627,7 +646,11 @@ begin
   if Length(Closer)<>0 then
   begin
   if PosEx(Closer,AString, TokenStart+1)> 0 then
-    TokenLength:= PosEx(Closer,AString, TokenStart+1)- TokenStart
+  begin
+   if (Occurence= uncSecond)
+             then TokenLength:=PosEx(Closer,AString, TokenStart+1)-TokenStart
+             else TokenLength:=rPos(Closer,AString)-TokenStart;
+    end
   else TokenLength:=Length(AString); //Closer is missing
     RetVal.Contents:=Mid(AString,TokenStart,TokenLength);
     RetVal.Opening:=LeftStr(AString,TokenStart-1); //todo

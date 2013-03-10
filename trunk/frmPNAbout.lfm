@@ -628,34 +628,37 @@ object frmAbout: TfrmAbout
   end
   object lblGPL: TLabel
     Left = 8
-    Height = 14
+    Height = 13
     Top = 40
-    Width = 306
+    Width = 305
     Caption = 'This application is licensed under GNU GPL,which is given below:'
     ParentColor = False
   end
   object lblVersion: TLabel
     Left = 8
-    Height = 14
+    Height = 13
     Top = 8
-    Width = 143
-    Caption = 'ПревНарин, ver. 2012.08.02'
+    Width = 142
+    Caption = 'ПревНарин, ver. 2012.12.01'
     ParentColor = False
   end
   object Label1: TLabel
     Left = 8
-    Height = 14
+    Height = 13
     Top = 24
-    Width = 90
+    Width = 89
     Caption = 'prevnar.berlios.de'
     ParentColor = False
   end
   object Button1: TButton
-    Left = 224
+    Left = 238
     Height = 25
     Top = 416
     Width = 75
+    AutoSize = True
     Caption = 'Okay'
+    Constraints.MinHeight = 25
+    Constraints.MinWidth = 75
     ModalResult = 1
     TabOrder = 1
   end
