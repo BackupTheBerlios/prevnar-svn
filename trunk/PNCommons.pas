@@ -33,6 +33,7 @@ type
   StringArray2D = array of array of string ;
   IntegerArray1D = array of integer;
   DisplayMode= (DisplayAll=0, DisplayUntranslatedOnly= 1, DisplayFuzzyOnly= 2, DisplayUntranslatedAndFusy= 3, DisplayTranslatedOnly=4);
+  tStripQuotes= (StripAlways, StripNever, StripAuto);
   UncloseOccurence= (uncSecond, uncLast);
   UniFile= record
     UniText:string;
@@ -108,8 +109,11 @@ var
    VocabularyPath:String;
    VocabularySourcePath:String;
    AutotranslateOkay:Boolean=False;
-   StripQuotes:Boolean=True;
-   ConvertQuotes:Boolean=False;
+   StripQuotes{Set}:tStripQuotes=StripAuto;
+//   StripQuotes: Boolean;
+   ConvertQuotes:Boolean=True;
+   QuotationMarkType:integer=0;
+   QuoteChar:string='"';
    {End of adjustable vars}
 
   {Localization strings start here}
@@ -187,6 +191,7 @@ var
   ezMissingClosingQuotationMarkOnLine1: String;
   ezTooManyQuotationMarksOnLine1:String;
   ezDoubleQuotationMarksOnLine1: String;
+  ezErrorWhileReadinSettingsFile: String;
 {Localization strings end here}
 
 implementation

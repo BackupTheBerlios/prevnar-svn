@@ -23,7 +23,7 @@ unit frmPNAbout;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls;
+  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls, lclintf;
 
 type
 
@@ -31,10 +31,12 @@ type
 
   TfrmAbout = class(TForm)
     Button1: TButton;
-    Label1: TLabel;
+    lblURL: TLabel;
     lblVersion: TLabel;
     lblGPL: TLabel;
     txtGPL: TMemo;
+    procedure lblURLClick(Sender: TObject);
+    procedure txtGPLChange(Sender: TObject);
   private
     { private declarations }
   public
@@ -50,6 +52,16 @@ implementation
 
 { TfrmAbout }
 
+
+procedure TfrmAbout.lblURLClick(Sender: TObject);
+begin
+    OpenURL('http://prevnar.berlios.de/');
+end;
+
+procedure TfrmAbout.txtGPLChange(Sender: TObject);
+begin
+
+end;
 
 end.
 

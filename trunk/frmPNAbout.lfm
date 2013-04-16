@@ -1,7 +1,7 @@
 object frmAbout: TfrmAbout
-  Left = 359
+  Left = 405
   Height = 452
-  Top = 81
+  Top = 165
   Width = 557
   BorderStyle = bsDialog
   Caption = 'About'
@@ -623,6 +623,7 @@ object frmAbout: TfrmAbout
       'applications with the library. If this is what you want to do, use the GNU Lesser General Public License '
       'instead of this License. But first, please read <http://www.gnu.org/philosophy/why-not-lgpl.html>.'
     )
+    OnChange = txtGPLChange
     ScrollBars = ssVertical
     TabOrder = 0
   end
@@ -638,17 +639,21 @@ object frmAbout: TfrmAbout
     Left = 8
     Height = 13
     Top = 8
-    Width = 142
-    Caption = 'ПревНарин, ver. 2012.12.01'
+    Width = 200
+    Caption = 'ПревНарин [PrevNarin], ver. 2013.04.01'
     ParentColor = False
   end
-  object Label1: TLabel
+  object lblURL: TLabel
     Left = 8
     Height = 13
     Top = 24
-    Width = 89
+    Width = 103
     Caption = 'prevnar.berlios.de'
+    Font.Color = clActiveCaption
+    Font.Style = [fsBold, fsUnderline]
     ParentColor = False
+    ParentFont = False
+    OnClick = lblURLClick
   end
   object Button1: TButton
     Left = 238

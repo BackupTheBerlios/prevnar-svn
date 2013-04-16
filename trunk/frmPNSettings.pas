@@ -32,15 +32,18 @@ type
   { TfrmSettings }
 
   TfrmSettings = class(TForm)
+    cboStripQuotes: TComboBox;
+    cboQuotationMarkType: TComboBox;
     chkConvertQuotes: TCheckBox;
     chkIgnoreSections: TCheckBox;
-    chkStripQuotes: TCheckBox;
     chkOkayAutotranslate: TCheckBox;
     chkConvertPercent: TCheckBox;
     cmdOkay: TButton;
     chkFillInEmpty: TCheckBox;
     cmdCancel: TButton;
     cboConfirmAutotranslate: TComboBox;
+    lblQuotationMarkType: TLabel;
+    lblStripQuotes: TLabel;
     speRecent: TSpinEdit;
     lblRecent: TLabel;
     lblConfirmAutotranslate: TLabel;
@@ -52,6 +55,7 @@ type
     txtRowSplitter: TEdit;
     lblIgnoreBeginnings: TLabel;
     txtSectionCloser: TEdit;
+    procedure cboStripQuotesChange(Sender: TObject);
     procedure chkOkayAutotranslateChange(Sender: TObject);
     procedure cmdCancelClick(Sender: TObject);
     procedure cmdOkayClick(Sender: TObject);
@@ -148,9 +152,10 @@ begin
     +'VocabularySourcePath=' + VocabularySourcePath +CrLf
     +'VocabularyPath='+ VocabularyPath+ CrLf
     +'AutotranslateOkay=' + BooleanToString(AutotranslateOkay) +CrLf
-    +'StripQuotes='+ BooleanToString (StripQuotes) +CrLf
+    +'StripQuotes='+ IntToStr(ord(StripQuotes{Set})) +CrLf
     +'ConvertQuotes='+ BooleanToString (ConvertQuotes) +CrLf
-    + CrLf ; //CrLf is needed, to assure that the value will be properly read, if the settings file cannot be deleted.
+    +'QuotationMarkType='+ IntToStr (QuotationMarkType)
+    +CrLf ; //CrLf is needed, to assure that the value will be properly read, if the settings file cannot be deleted.
  end;  //with
  try
    DeleteFile (AppendPathDelim(ProgramDirectory) + SettingsFile);
@@ -266,11 +271,13 @@ begin
        'VocabularyPath':VocabularyPath:=Value;
        'VocabularySourcePath':VocabularySourcePath:=Value;
        'AutotranslateOkay': AutotranslateOkay:=StringToBoolean(Value);
-       'StripQuotes':StripQuotes:=StringToBoolean(Value);
+       'StripQuotes':ord(StripQuotes{Set}):=StrToInt(Value);
        'ConvertQuotes':ConvertQuotes:=StringToBoolean(Value);
+       'QuotationMarkType':QuotationMarkType:=StrToInt(Value);
      end;  //case
    end;  //for i
    except
+     ShowMessage (ezErrorWhileReadinSettingsFile);
    end; //except
  // finally
  end
@@ -288,10 +295,11 @@ begin
   AutotranslateOkay:=False;
   IgnoreSections:=False;
   ConvertPercent:=False;
-  StripQuotes:=True;
+  StripQuotes{Set}:=StripAuto;
   ConvertQuotes:=False;
   DebugMode:=False;
   RecentStore:=5;
+  QuotationMarkType:=0;
   SaveSettings;
 end;
  SetSettings;
@@ -311,8 +319,10 @@ begin
    AutotranslateOkay:=chkOkayAutotranslate.Checked;
    IgnoreSections:=chkIgnoreSections.Checked;
    ConvertPercent:=chkConvertPercent.Checked;
-   StripQuotes:=chkStripQuotes.Checked;
+   ord(StripQuotes{Set}):= cboStripQuotes.ItemIndex;
    ConvertQuotes:=chkConvertQuotes.Checked;
+   QuotationMarkType:=cboQuotationMarkType.ItemIndex;
+   QuoteChar:=cboQuotationMarkType.Items[cboQuotationMarkType.ItemIndex];
  end; //with
 end;
 
@@ -330,8 +340,10 @@ begin
     chkConvertPercent.Checked:=ConvertPercent;
     speRecent.Value:=RecentStore;
     chkOkayAutotranslate.Checked:=AutotranslateOkay;
-    chkStripQuotes.Checked:=StripQuotes;
+    cboStripQuotes.ItemIndex:=ord(StripQuotes{Set});
     chkConvertQuotes.Checked:=ConvertQuotes;
+    cboQuotationMarkType.ItemIndex:=QuotationMarkType;
+    QuoteChar:=cboQuotationMarkType.Items[cboQuotationMarkType.ItemIndex];
   end; //with
 end;
 
@@ -356,6 +368,11 @@ begin
 end;
 
 procedure TfrmSettings.chkOkayAutotranslateChange(Sender: TObject);
+begin
+
+end;
+
+procedure TfrmSettings.cboStripQuotesChange(Sender: TObject);
 begin
 
 end;

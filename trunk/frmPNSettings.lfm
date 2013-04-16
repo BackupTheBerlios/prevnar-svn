@@ -1,7 +1,7 @@
 object frmSettings: TfrmSettings
-  Left = 374
+  Left = 445
   Height = 370
-  Top = 161
+  Top = 352
   Width = 597
   BorderStyle = bsSingle
   Caption = 'Settings'
@@ -57,10 +57,12 @@ object frmSettings: TfrmSettings
     ParentColor = False
   end
   object txtRowSplitter: TEdit
+    AnchorSideTop.Control = lblRowSplitter
+    AnchorSideTop.Side = asrCenter
     Left = 136
     Height = 21
     Hint = '\\ - backslash'#13#10'\t - tab'#13#10'\N- CrLf'#13#10'\R- Cr'#13#10'\L- Lf'#13#10'\[..]- decimal ascii value'#13#10'\[$..]- hex ascii value'
-    Top = 24
+    Top = 28
     Width = 48
     ParentShowHint = False
     ShowHint = True
@@ -70,17 +72,19 @@ object frmSettings: TfrmSettings
   object lblRowSplitter: TLabel
     Left = 8
     Height = 13
-    Top = 31
+    Top = 32
     Width = 57
     Caption = 'Row splitter'
     ParentColor = False
     OnClick = lblRowSplitterClick
   end
   object txtSectionOpener: TEdit
+    AnchorSideTop.Control = lblSectionOpener
+    AnchorSideTop.Side = asrCenter
     Left = 136
     Height = 21
     Hint = '\\ - backslash'#13#10'\t - tab'#13#10'\N- CrLf'#13#10'\R- Cr'#13#10'\L- Lf'#13#10'\[..]- decimal ascii value'#13#10'\[$..]- hex ascii value'
-    Top = 57
+    Top = 53
     Width = 48
     ParentShowHint = False
     ShowHint = True
@@ -88,18 +92,23 @@ object frmSettings: TfrmSettings
     Text = '['
   end
   object lblSectionOpener: TLabel
+    AnchorSideTop.Control = lblRowSplitter
+    AnchorSideTop.Side = asrBottom
     Left = 8
     Height = 13
-    Top = 64
+    Top = 57
     Width = 72
+    BorderSpacing.Top = 12
     Caption = 'Section opener'
     ParentColor = False
   end
   object txtSectionCloser: TEdit
+    AnchorSideTop.Control = lblSectionCloser
+    AnchorSideTop.Side = asrCenter
     Left = 136
     Height = 21
     Hint = '\\ - backslash'#13#10'\t - tab'#13#10'\N- CrLf'#13#10'\R- Cr'#13#10'\L- Lf'#13#10'\[..]- decimal ascii value'#13#10'\[$..]- hex ascii value'
-    Top = 89
+    Top = 78
     Width = 48
     ParentShowHint = False
     ShowHint = True
@@ -107,10 +116,13 @@ object frmSettings: TfrmSettings
     Text = ']'
   end
   object lblSectionCloser: TLabel
+    AnchorSideTop.Control = lblSectionOpener
+    AnchorSideTop.Side = asrBottom
     Left = 8
     Height = 13
-    Top = 96
+    Top = 82
     Width = 66
+    BorderSpacing.Top = 12
     Caption = 'Section closer'
     ParentColor = False
   end
@@ -123,10 +135,13 @@ object frmSettings: TfrmSettings
     TabOrder = 6
   end
   object cboConfirmAutotranslate: TComboBox
+    AnchorSideTop.Control = lblConfirmAutotranslate
+    AnchorSideTop.Side = asrCenter
     Left = 480
     Height = 21
-    Top = 56
+    Top = 78
     Width = 96
+    Anchors = [akTop]
     ItemHeight = 13
     ItemIndex = 0
     Items.Strings = (
@@ -138,10 +153,13 @@ object frmSettings: TfrmSettings
     Text = 'Never ask'
   end
   object lblConfirmAutotranslate: TLabel
+    AnchorSideTop.Control = lblStripQuotes
+    AnchorSideTop.Side = asrBottom
     Left = 256
     Height = 13
-    Top = 56
+    Top = 82
     Width = 201
+    BorderSpacing.Top = 12
     Caption = 'Ask for confirmation when autotranslating'
     ParentColor = False
   end
@@ -156,15 +174,17 @@ object frmSettings: TfrmSettings
   object lblRecent: TLabel
     Left = 256
     Height = 13
-    Top = 31
+    Top = 32
     Width = 124
     Caption = 'Recent files to remember:'
     ParentColor = False
   end
   object speRecent: TSpinEdit
+    AnchorSideTop.Control = lblRecent
+    AnchorSideTop.Side = asrCenter
     Left = 480
     Height = 21
-    Top = 24
+    Top = 28
     Width = 96
     MaxValue = 15
     TabOrder = 9
@@ -182,31 +202,88 @@ object frmSettings: TfrmSettings
     ShowHint = True
     TabOrder = 10
   end
-  object chkStripQuotes: TCheckBox
-    Left = 9
-    Height = 17
-    Top = 280
-    Width = 120
-    Caption = 'Strip quotation marks'
-    TabOrder = 11
-  end
   object chkConvertPercent: TCheckBox
     Left = 8
     Height = 17
     Hint = 'Converts %s to %1; %n to %2 and %i to 3 only while editing the lines.'#13#10'This is convenient when the translation language uses a nonlatin alphabeth.'
-    Top = 328
+    Top = 302
     Width = 160
     Caption = 'Convert %n, etc. to numbers'
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 12
+    TabOrder = 11
   end
   object chkConvertQuotes: TCheckBox
     Left = 8
     Height = 17
-    Top = 304
+    Top = 278
     Width = 88
     Caption = 'Convert \" to "'
+    TabOrder = 12
+  end
+  object lblStripQuotes: TLabel
+    AnchorSideTop.Control = lblRecent
+    AnchorSideTop.Side = asrBottom
+    Left = 256
+    Height = 13
+    Top = 57
+    Width = 102
+    BorderSpacing.Top = 12
+    Caption = 'Strip quotation marks'
+    ParentColor = False
+  end
+  object cboStripQuotes: TComboBox
+    AnchorSideLeft.Control = lblStripQuotes
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = lblStripQuotes
+    AnchorSideTop.Side = asrCenter
+    Left = 480
+    Height = 21
+    Top = 53
+    Width = 96
+    Anchors = [akTop]
+    BorderSpacing.Left = 8
+    ItemHeight = 13
+    ItemIndex = 2
+    Items.Strings = (
+      'Always'
+      'Never'
+      'Auto'
+    )
+    OnChange = cboStripQuotesChange
     TabOrder = 13
+    Text = 'Auto'
+  end
+  object lblQuotationMarkType: TLabel
+    AnchorSideTop.Control = lblConfirmAutotranslate
+    AnchorSideTop.Side = asrBottom
+    Left = 256
+    Height = 13
+    Top = 107
+    Width = 98
+    BorderSpacing.Top = 12
+    Caption = 'Quotation marks are'
+    ParentColor = False
+  end
+  object cboQuotationMarkType: TComboBox
+    AnchorSideLeft.Control = lblStripQuotes
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = lblQuotationMarkType
+    AnchorSideTop.Side = asrCenter
+    Left = 480
+    Height = 21
+    Top = 103
+    Width = 96
+    Anchors = [akTop]
+    BorderSpacing.Left = 8
+    ItemHeight = 13
+    ItemIndex = 0
+    Items.Strings = (
+      '"'
+      ''''
+    )
+    OnChange = cboStripQuotesChange
+    TabOrder = 14
+    Text = '"'
   end
 end

@@ -417,6 +417,7 @@ begin
   ezMissingClosingQuotationMarkOnLine1:='Missing closing quotation mark on line №%1';
   ezDoubleQuotationMarksOnLine1:= 'Double quotation marks on line №%1';
   ezTooManyQuotationMarksOnLine1:='Too many quotation marks on line№  %1';
+  ezErrorWhileReadinSettingsFile:='Error occured while reading the settings file. If this message keeps showing, delete prevnarin.ini';
 
   frmIniPrevMain.Caption:=ezIniPrev;
 end;
@@ -1195,7 +1196,7 @@ begin
     if (Length(sgStringList.Cells [colTranslation,i])=0) or (CompareText(sgStringList.Cells [colTranslation,i],sgStringList.Cells [colMain,i])=0) then
     for j:=0 to Length(Vocabulary)-1 do
     begin //for j
-      TranslationLine:=Unclose(sgStringList.Cells[colMain,i],'"','"');
+      TranslationLine:=Unclose(sgStringList.Cells[colMain,i],QuoteChar,QuoteChar);
       if CompareText(Vocabulary[j,0],TranslationLine.Contents)=0 then
       begin //if
         sgStringList.Cells[colTranslation,i]:= TranslationLine.Opening+Vocabulary[j,1]+TranslationLine.Closing;
@@ -1257,9 +1258,12 @@ begin
   begin
     SetEditWidgets(True);
    //Show main line
-   if StripQuotes=True
-      then txtMDefault.Text:=Unclose(sgStringList.Cells [colMain,sgStringList.Selection.Top],'"','"',uncLast).Contents
-      else txtMDefault.Text:=sgStringList.Cells [colMain,sgStringList.Selection.Top];
+   if (StripQuotes=StripAlways)
+   or( (StripQuotes=StripAuto)
+     and (LeftStr(Trim(sgStringList.Cells [colMain,sgStringList.Selection.Top]),1)=QuoteChar)
+     and (RightStr(Trim(sgStringList.Cells [colMain,sgStringList.Selection.Top]),1)=QuoteChar))
+        then txtMDefault.Text:=Unclose(sgStringList.Cells [colMain,sgStringList.Selection.Top],QuoteChar,QuoteChar,uncLast).Contents
+        else txtMDefault.Text:=sgStringList.Cells [colMain,sgStringList.Selection.Top];
     if (ConvertPercent=True)
       and (InStr(txtMDefault.Text,'%1')=0) and (InStr(txtMDefault.Text,'%2')=0) and (InStr(txtMDefault.Text,'%3')=0) then
       begin
@@ -1268,16 +1272,17 @@ begin
          txtMDefault.Text:= utf8StringReplace(txtMDefault.Text,'%i','%3',[rfReplaceAll,rfIgnoreCase]);
       end;
     if (ConvertQuotes=True)
-      and (Occurs(txtMDefault.Text,'\"')=Occurs(txtMDefault.Text,'"')) then
+      and (Occurs(txtMDefault.Text,'\'+QuoteChar)=Occurs(txtMDefault.Text,QuoteChar)) then
       begin
-         txtMDefault.Text:= utf8StringReplace(txtMDefault.Text,'\"','"',[rfReplaceAll]);
+         txtMDefault.Text:= utf8StringReplace(txtMDefault.Text,'\'+ QuoteChar,QuoteChar,[rfReplaceAll]);
       end;
 
     //Show translation line
-    if StripQuotes=True
+    //TODO: StripAuto not yet implemented
+    if StripQuotes=StripAlways
       then
       begin
-        EditedLine:=Unclose(sgStringList.Cells [colTranslation,sgStringList.Selection.Top],'"','"',uncLast);
+        EditedLine:=Unclose(sgStringList.Cells [colTranslation,sgStringList.Selection.Top],QuoteChar,QuoteChar,uncLast);
         StrippedQuotes:=True;
       end
       else EditedLine.Contents:=sgStringList.Cells [colTranslation,sgStringList.Selection.Top];
@@ -1293,9 +1298,9 @@ begin
       else ConvertedPercent:=False;
 
       if (ConvertQuotes=True)
-      and (Occurs(EditedLine.Contents,'\"')=Occurs(EditedLine.Contents,'"')) then
+      and (Occurs(EditedLine.Contents,'\'+QuoteChar)=Occurs(EditedLine.Contents,QuoteChar)) then
       begin
-         EditedLine.Contents:= utf8StringReplace(EditedLine.Contents,'\"','"',[rfReplaceAll]);
+         EditedLine.Contents:= utf8StringReplace(EditedLine.Contents,'\'+QuoteChar,QuoteChar,[rfReplaceAll]);
          ConvertedQuotes:=True;
       end
       else ConvertedQuotes:=False;
@@ -1412,18 +1417,17 @@ procedure ReplaceEntry(Row:Integer);
 var
     i:integer;
     MainQuoted: Boolean=False;
-    a,b,c,d:string;
 begin
   with frmIniPrevMain do
   begin //with
-    if (LeftStr(Trim(sgStringList.Cells [colMain,Row]),1)= '"')
-       and (RightStr(Trim(sgStringList.Cells [colMain,Row]),1)= '"')
+    if (LeftStr(Trim(sgStringList.Cells [colMain,Row]),1)=QuoteChar)
+       and (RightStr(Trim(sgStringList.Cells [colMain,Row]),1)=QuoteChar)
        then
          MainQuoted:=True;
 //    sgStringList.Cells [colMain,Row]:= txtMDefault.Text;
 
     sgStringList.Cells [colTranslation,Row]:=txtMTranslation.Text;
-    if (ConvertPercent =True) and (ConvertedPercent=True) then
+    if (ConvertPercent=True) and (ConvertedPercent=True) then
     begin
       sgStringList.Cells [colTranslation,Row]:=UTF8StringReplace(sgStringList.Cells [colTranslation,Row],'%1','%n',[]);
       sgStringList.Cells [colTranslation,Row]:=UTF8StringReplace(sgStringList.Cells [colTranslation,Row],'%2','%s',[]);
@@ -1432,12 +1436,12 @@ begin
 
     if (ConvertQuotes = True) and (ConvertedQuotes=True) then
     begin
-      sgStringList.Cells [colTranslation,Row]:=UTF8StringReplace(sgStringList.Cells [colTranslation,Row],'"','\"',[rfReplaceAll]);
+      sgStringList.Cells [colTranslation,Row]:=UTF8StringReplace(sgStringList.Cells [colTranslation,Row],QuoteChar,'\'+QuoteChar,[rfReplaceAll]);
     end;
 
-    if (StripQuotes=True) and (MainQuoted=True) and (StrippedQuotes=True)
+    if (StripQuotes=StripAlways) and (MainQuoted=True) and (StrippedQuotes=True)
       then
-        sgStringList.Cells [colTranslation,Row]:={EditedLine.Opening} '"'+ sgStringList.Cells [colTranslation,Row] {txtMTranslation.Text}+ '"' {EditedLine.Closing}
+        sgStringList.Cells [colTranslation,Row]:={EditedLine.Opening} QuoteChar+ sgStringList.Cells [colTranslation,Row] {txtMTranslation.Text}+ QuoteChar {EditedLine.Closing}
       else
         sgStringList.Cells [colTranslation,Row]:=sgStringList.Cells [colTranslation,Row] {txtMTranslation.Text}; //TODO: If opening and closing='' only the upper line needs to be run.
 
@@ -1463,7 +1467,7 @@ var
    begin //with
       MainContent:= sgStringList.Cells [colMain,sgStringList.Selection.Top];
       SetEditWidgets(False);
-      ReplaceEntry (sgStringList.Selection.Top);
+      ReplaceEntry(sgStringList.Selection.Top);
       if AutotranslateOkay=True then
       for i:= 1 to sgStringList.RowCount-1 do
       begin //for i
@@ -1474,7 +1478,7 @@ var
         end; //if
       end; //for i
 
-      if Unsaved = False then frmIniPrevMain.Caption:= frmIniPrevMain.Caption + '*';
+      if Unsaved=False then frmIniPrevMain.Caption:= frmIniPrevMain.Caption + '*';
       Unsaved:=True;
       mnuFileSaveTranslation.Enabled:=True;
       PrintStatus();
@@ -1582,13 +1586,13 @@ begin //with
          if (Length(Trim(Cells[colTranslation,i]))>0)
          then
           begin
-            QuotesCount:=Occurs(Cells[colTranslation,i],'"');
-             if (LeftStr(Trim(Cells[colMain,i]),1)='"') and (LeftStr(Trim(Cells[colTranslation,i]),1)<>'"') then
+            QuotesCount:=Occurs(Cells[colTranslation,i],QuoteChar);
+             if (LeftStr(Trim(Cells[colMain,i]),1)=QuoteChar) and (LeftStr(Trim(Cells[colTranslation,i]),1)<>QuoteChar) then
              begin
                QuoteError:=1;
                QuestionDlg(ezError,LocalizeRowMultiple(ezMissingOpeningQuotationMarkOnLine1, its(i)), mtCustom, [mrOK,ezOkay],'');
              end;
-             if (RightStr(Trim(Cells[colMain,i]),1)='"') and (RightStr(Trim(Cells[colTranslation,i]),1)<> '"') then
+             if (RightStr(Trim(Cells[colMain,i]),1)=QuoteChar) and (RightStr(Trim(Cells[colTranslation,i]),1)<> QuoteChar) then
              begin
                QuoteError:=2;
                QuestionDlg(ezError,LocalizeRowMultiple(ezMissingClosingQuotationMarkOnLine1, its(i)), mtCustom, [mrOK,ezOkay],'');
@@ -1598,7 +1602,7 @@ begin //with
                QuoteError:=3;
                QuestionDlg(ezError,LocalizeRowMultiple(ezDoubleQuotationMarksOnLine1, its(i)), mtCustom, [mrOK,ezOkay],'');
              end;
-             if QuotesCount-Occurs(Cells[colTranslation,i],'\"')>2 then
+             if QuotesCount-Occurs(Cells[colTranslation,i],'\'+QuoteChar)>2 then
              begin
                QuoteError:=4;
                QuestionDlg(ezError,LocalizeRowMultiple(ezTooManyQuotationMarksOnLine1, its(i)), mtCustom, [mrOK,ezOkay],'');
