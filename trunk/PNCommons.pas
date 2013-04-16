@@ -192,6 +192,7 @@ var
   ezTooManyQuotationMarksOnLine1:String;
   ezDoubleQuotationMarksOnLine1: String;
   ezErrorWhileReadinSettingsFile: String;
+  ezNoQuoteErrorsFound: String;
 {Localization strings end here}
 
 implementation

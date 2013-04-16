@@ -418,6 +418,7 @@ begin
   ezDoubleQuotationMarksOnLine1:= 'Double quotation marks on line №%1';
   ezTooManyQuotationMarksOnLine1:='Too many quotation marks on line№  %1';
   ezErrorWhileReadinSettingsFile:='Error occured while reading the settings file. If this message keeps showing, delete prevnarin.ini';
+  ezNoQuoteErrorsFound:='No quote errors found.';
 
   frmIniPrevMain.Caption:=ezIniPrev;
 end;
@@ -1278,8 +1279,10 @@ begin
       end;
 
     //Show translation line
-    //TODO: StripAuto not yet implemented
-    if StripQuotes=StripAlways
+   if (StripQuotes=StripAlways)
+   or((StripQuotes=StripAuto)
+     and (LeftStr(Trim(sgStringList.Cells [colTranslation,sgStringList.Selection.Top]),1)=QuoteChar)
+     and (RightStr(Trim(sgStringList.Cells [colTranslation,sgStringList.Selection.Top]),1)=QuoteChar))
       then
       begin
         EditedLine:=Unclose(sgStringList.Cells [colTranslation,sgStringList.Selection.Top],QuoteChar,QuoteChar,uncLast);
@@ -1578,6 +1581,7 @@ var
   i:integer;
   QuoteError:Integer=0;
   QuotesCount:Integer;
+  ErrorsCount:word=0;
 begin
 with sgStringList do
 begin //with
@@ -1611,9 +1615,11 @@ begin //with
          if QuoteError>0 then
          begin //if  QuoteError
            Row:= i;
+           inc(ErrorsCount);
            break;
          end; //if  QuoteError
      end; //for i
+     if (ErrorsCount=0) then   ShowMessage (ezNoQuoteErrorsFound);
 end; //with
 end;
 
