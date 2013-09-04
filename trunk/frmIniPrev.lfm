@@ -131,7 +131,7 @@ object frmIniPrevMain: TfrmIniPrevMain
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnResize = FormResize
-  LCLVersion = '1.1'
+  LCLVersion = '1.0.12.0'
   object sgStringList: TStringGrid
     Left = 16
     Height = 314
@@ -163,9 +163,9 @@ object frmIniPrevMain: TfrmIniPrevMain
   end
   object lblNewLineStringDefault: TLabel
     Left = 8
-    Height = 13
+    Height = 14
     Top = 384
-    Width = 12
+    Width = 13
     Caption = 'NL'
     Font.CharSet = 4
     Font.Color = clBlack
@@ -218,9 +218,9 @@ object frmIniPrevMain: TfrmIniPrevMain
   end
   object lblNewLineStringTranslation: TLabel
     Left = 8
-    Height = 13
+    Height = 14
     Top = 408
-    Width = 12
+    Width = 13
     Caption = 'NL'
     Font.CharSet = 4
     Font.Color = clBlack
@@ -246,9 +246,9 @@ object frmIniPrevMain: TfrmIniPrevMain
   end
   object lblCharsetDefault: TLabel
     Left = 40
-    Height = 13
+    Height = 14
     Top = 384
-    Width = 25
+    Width = 26
     Caption = 'UTF8'
     Enabled = False
     Font.CharSet = 4
@@ -261,10 +261,10 @@ object frmIniPrevMain: TfrmIniPrevMain
   end
   object lblCharsetTranslation: TLabel
     Left = 40
-    Height = 13
+    Height = 14
     Hint = 'Encoding, used when reading the file. Click on it to change it.'
     Top = 408
-    Width = 25
+    Width = 26
     Caption = 'UTF8'
     Font.CharSet = 4
     Font.Color = clBlack
@@ -278,19 +278,19 @@ object frmIniPrevMain: TfrmIniPrevMain
   end
   object lblBOMDefault: TLabel
     Left = 152
-    Height = 13
+    Height = 14
     Top = 384
-    Width = 22
+    Width = 23
     Caption = 'BOM'
     Enabled = False
     ParentColor = False
   end
   object lblBOMTranslation: TLabel
     Left = 152
-    Height = 13
+    Height = 14
     Hint = 'Show if BOM is present in the file.'
     Top = 408
-    Width = 22
+    Width = 23
     Caption = 'BOM'
     Enabled = False
     ParentColor = False
@@ -299,26 +299,26 @@ object frmIniPrevMain: TfrmIniPrevMain
   end
   object lblStatusSecondary: TLabel
     Left = 340
-    Height = 13
+    Height = 14
     Top = 408
-    Width = 31
+    Width = 32
     Caption = 'Status'
     ParentColor = False
   end
   object lblArrow: TLabel
     Left = 210
-    Height = 13
+    Height = 14
     Top = 408
-    Width = 12
+    Width = 13
     Caption = '->'
     ParentColor = False
   end
   object lblCharsetTranslationWrite: TLabel
     Left = 230
-    Height = 13
+    Height = 14
     Hint = 'Encoding, used when writing the file. Click on it to change it.'
     Top = 408
-    Width = 25
+    Width = 26
     Caption = 'UTF8'
     ParentColor = False
     ParentShowHint = False
@@ -327,10 +327,10 @@ object frmIniPrevMain: TfrmIniPrevMain
   end
   object lblBOMTranslationWrite: TLabel
     Left = 290
-    Height = 13
+    Height = 14
     Hint = 'Write the file with or without BOM. Click to toggle.'
     Top = 408
-    Width = 22
+    Width = 23
     Caption = 'BOM'
     ParentColor = False
     ParentShowHint = False
@@ -349,18 +349,18 @@ object frmIniPrevMain: TfrmIniPrevMain
   end
   object lblAnsiCPMain: TLabel
     Left = 112
-    Height = 13
+    Height = 14
     Top = 384
-    Width = 18
+    Width = 19
     Caption = '___'
     Enabled = False
     ParentColor = False
   end
   object lblAnsiCPTranslation: TLabel
     Left = 112
-    Height = 13
+    Height = 14
     Top = 408
-    Width = 18
+    Width = 19
     Caption = '___'
     Enabled = False
     ParentColor = False
