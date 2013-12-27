@@ -640,7 +640,7 @@ object frmAbout: TfrmAbout
     Height = 13
     Top = 8
     Width = 200
-    Caption = 'ПревНарин [PrevNarin], ver. 2013.08.01'
+    Caption = 'ПревНарин [PrevNarin], ver. 2013.12.01'
     ParentColor = False
   end
   object lblURL: TLabel
