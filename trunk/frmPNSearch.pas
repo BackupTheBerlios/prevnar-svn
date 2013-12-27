@@ -40,6 +40,7 @@ type
     txtIgnoreChar: TEdit;
     rgDirection: TRadioGroup;
     txtSoughtText: TLabeledEdit;
+    //tSearchDirection: (sdPrevious, sdNext, sdBeginning);
     procedure cbgIgnoreCharsItemClick(Sender: TObject; Index: integer);
     procedure FormCreate(Sender: TObject);
   private
@@ -50,6 +51,7 @@ type
 
 var
   frmSearch: TfrmSearch;
+  SearchDirection: integer;
 
 implementation
 

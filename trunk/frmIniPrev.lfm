@@ -1,7 +1,7 @@
 object frmIniPrevMain: TfrmIniPrevMain
-  Left = 327
+  Left = 287
   Height = 483
-  Top = 242
+  Top = 118
   Width = 664
   Caption = 'Ini Translator'
   ClientHeight = 463

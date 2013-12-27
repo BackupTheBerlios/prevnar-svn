@@ -1279,7 +1279,6 @@ begin
       end;
     txtMDefault.Text:= utf8StringReplace(txtMDefault.Text,'\n',CrLf,[rfReplaceAll,rfIgnoreCase]);
 
-
     //Show translation line
    if (StripQuotes=StripAlways)
    or((StripQuotes=StripAuto)
@@ -1295,9 +1294,9 @@ begin
     if (ConvertPercent=True)
       and (InStr(EditedLine.Contents,'%1')=0) and (InStr(EditedLine.Contents,'%2')=0) and (InStr(EditedLine.Contents,'%3')=0) then
       begin
-         EditedLine.Contents:=utf8StringReplace(EditedLine.Contents,'%n','%1',[rfReplaceAll]);
-         EditedLine.Contents:=utf8StringReplace(EditedLine.Contents,'%s','%2',[rfReplaceAll]);
-         EditedLine.Contents:=utf8StringReplace(EditedLine.Contents,'%i','%3',[rfReplaceAll]);
+         EditedLine.Contents:= utf8StringReplace(EditedLine.Contents,'%n','%1',[rfReplaceAll]);
+         EditedLine.Contents:= utf8StringReplace(EditedLine.Contents,'%s','%2',[rfReplaceAll]);
+         EditedLine.Contents:= utf8StringReplace(EditedLine.Contents,'%i','%3',[rfReplaceAll]);
          ConvertedPercent:=True;
       end
       else ConvertedPercent:=False;
@@ -1305,15 +1304,15 @@ begin
       if (ConvertQuotes=True)
       and (Occurs(EditedLine.Contents,'\'+QuoteChar)=Occurs(EditedLine.Contents,QuoteChar)) then
       begin
-         EditedLine.Contents:=utf8StringReplace(EditedLine.Contents,'\'+QuoteChar,QuoteChar,[rfReplaceAll]);
+         EditedLine.Contents:= utf8StringReplace(EditedLine.Contents,'\'+QuoteChar,QuoteChar,[rfReplaceAll]);
          ConvertedQuotes:=True;
       end
       else ConvertedQuotes:=False;
-
     EditedLine.Contents:= utf8StringReplace(EditedLine.Contents,'\n',CrLf,[rfReplaceAll,rfIgnoreCase]);
+
     txtMTranslation.Text:=EditedLine.Contents;
     txtMAux.Visible:=AuxLoaded;
-    if AuxLoaded=True then txtMAux.Text:=AuxStrings[Length(AuxStrings)-1,0]+CrLf+AuxStrings [sgStringList.Selection.Top,0];
+    if AuxLoaded=True then txtMAux.Text:= AuxStrings[Length(AuxStrings)-1,0]+ CrLf +  AuxStrings [sgStringList.Selection.Top,0];
     //TODO- add qoutes stripping and %convertion
     Reposition;
     txtMTranslation.SetFocus ;
@@ -1432,7 +1431,7 @@ begin
          MainQuoted:=True;
 //    sgStringList.Cells [colMain,Row]:= txtMDefault.Text;
 
-    sgStringList.Cells [colTranslation,Row]:=UTF8StringReplace(txtMTranslation.Text,CrLf,'\n',[rfReplaceAll]);
+    sgStringList.Cells [colTranslation,Row]:=txtMTranslation.Text;
     if (ConvertPercent=True) and (ConvertedPercent=True) then
     begin
       sgStringList.Cells [colTranslation,Row]:=UTF8StringReplace(sgStringList.Cells [colTranslation,Row],'%1','%n',[]);
@@ -1471,7 +1470,7 @@ var
  begin
    with frmIniPrevMain do
    begin //with
-      MainContent:=sgStringList.Cells [colMain,sgStringList.Selection.Top];
+      MainContent:= UTF8StringReplace(sgStringList.Cells [colMain,sgStringList.Selection.Top],CrLf,'\n',[rfReplaceAll]);
       SetEditWidgets(False);
       ReplaceEntry(sgStringList.Selection.Top);
       if AutotranslateOkay=True then

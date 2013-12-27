@@ -1,7 +1,7 @@
 object frmAbout: TfrmAbout
-  Left = 405
+  Left = 334
   Height = 452
-  Top = 165
+  Top = 60
   Width = 557
   BorderStyle = bsDialog
   Caption = 'About'
@@ -130,7 +130,7 @@ object frmAbout: TfrmAbout
     0000FFFFFFFFFFFFFFFFC0000000FFFFFFFFFFFFFFFFC0000000FFFFFFFFFFFF
     FFFFC0000000FFFFFFFFFFFFFFFFC0000000
   }
-  LCLVersion = '1.0.12.0'
+  LCLVersion = '1.1'
   object txtGPL: TMemo
     Left = 8
     Height = 344
@@ -629,25 +629,25 @@ object frmAbout: TfrmAbout
   end
   object lblGPL: TLabel
     Left = 8
-    Height = 14
+    Height = 13
     Top = 40
-    Width = 306
+    Width = 305
     Caption = 'This application is licensed under GNU GPL,which is given below:'
     ParentColor = False
   end
   object lblVersion: TLabel
     Left = 8
-    Height = 14
+    Height = 13
     Top = 8
-    Width = 201
-    Caption = 'ПревНарин [PrevNarin], ver. 2013.09.01'
+    Width = 200
+    Caption = 'ПревНарин [PrevNarin], ver. 2013.08.01'
     ParentColor = False
   end
   object lblURL: TLabel
     Left = 8
-    Height = 14
+    Height = 13
     Top = 24
-    Width = 104
+    Width = 103
     Caption = 'prevnar.berlios.de'
     Font.Color = clActiveCaption
     Font.Style = [fsBold, fsUnderline]

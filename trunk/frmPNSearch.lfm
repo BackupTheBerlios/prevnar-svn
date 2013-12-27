@@ -32,7 +32,7 @@ object frmSearch: TfrmSearch
     Height = 25
     Top = 21
     Width = 75
-    Caption = 'Search'
+    Caption = '&Search'
     Constraints.MinHeight = 25
     Constraints.MinWidth = 75
     Default = True
@@ -66,9 +66,9 @@ object frmSearch: TfrmSearch
     ClientWidth = 116
     ItemIndex = 0
     Items.Strings = (
-      'Down'
-      'Up'
-      'From begining'
+      '&Down'
+      '&Up'
+      'From &begining'
     )
     TabOrder = 3
   end
@@ -79,7 +79,7 @@ object frmSearch: TfrmSearch
     Width = 75
     AutoSize = True
     Cancel = True
-    Caption = 'Cancel'
+    Caption = '&Cancel'
     Constraints.MinHeight = 25
     Constraints.MinWidth = 75
     ModalResult = 2
